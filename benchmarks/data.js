@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1755680572916,
+  "lastUpdate": 1758705969756,
   "repoUrl": "https://github.com/Galoretka/ethrex",
   "entries": {
     "Benchmark": [
@@ -29,6 +29,36 @@ window.BENCHMARK_DATA = {
             "name": "Block import/Block import ERC20 transfers",
             "value": 161786034245,
             "range": "± 325410440",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "rodrigooliveri10@gmail.com",
+            "name": "Rodrigo Oliveri",
+            "username": "rodrigo-o"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "448cab70ba986af5377347c61f434447b9de7b0c",
+          "message": "chore(l1): reduce range of account request to reduce memory overhead (#4584)\n\n**Motivation**\n\nReduce memory usage by reducing the chunks\n\n**Description**\n\nIt just reduce the calculation for file size to 128MB instead of 512MB",
+          "timestamp": "2025-09-23T20:08:09Z",
+          "tree_id": "6c9cbf7c3400bb2b597ad8a9e35b638f97146b7d",
+          "url": "https://github.com/Galoretka/ethrex/commit/448cab70ba986af5377347c61f434447b9de7b0c"
+        },
+        "date": 1758705967293,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "Block import/Block import ERC20 transfers",
+            "value": 89089227495,
+            "range": "± 149909201",
             "unit": "ns/iter"
           }
         ]
