@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Sequencer - Ethrex</title>
+        <title>Transaction fees - Ethrex</title>
 
 
         <!-- Custom HTML head -->
@@ -237,41 +237,130 @@
 }
 
 </style>
-<h1 id="ethrex-l2-sequencer"><a class="header" href="#ethrex-l2-sequencer">Ethrex L2 sequencer</a></h1>
-<h2 id="components"><a class="header" href="#components">Components</a></h2>
-<p>The L2 Proposer is composed of the following components:</p>
-<h3 id="block-producer"><a class="header" href="#block-producer">Block Producer</a></h3>
-<p>Creates Blocks with a connection to the <code>auth.rpc</code> port.</p>
-<h3 id="l1-watcher"><a class="header" href="#l1-watcher">L1 Watcher</a></h3>
-<p>This component monitors the L1 for new deposits made by users. For that, it queries the CommonBridge contract on L1 at regular intervals (defined by the config file) for new DepositInitiated() events. Once a new deposit event is detected, it creates the corresponding deposit transaction on the L2. It also periodically fetches the <code>BlobBaseFee</code> from L1 (at a configured interval), which is used to compute the <a href="../fundamentals/transaction_fees.html#l1-fees">L1 fees</a>.</p>
-<h3 id="l1-transaction-sender-aka-l1-committer"><a class="header" href="#l1-transaction-sender-aka-l1-committer">L1 Transaction Sender (a.k.a. L1 Committer)</a></h3>
-<p>As the name suggests, this component sends transactions to the L1. But not any transaction, only commit and verify transactions.</p>
-<p>Commit transactions are sent when the Proposer wants to commit to a new batch of blocks. These transactions contain the batch data to be committed in the L1.</p>
-<p>Verify transactions are sent by the Proposer after the prover has successfully generated a proof of block execution to verify it. These transactions contains the new state root of the L2, the hash of the state diffs produced in the block, the root of the withdrawals logs merkle tree and the hash of the processed deposits.</p>
-<h3 id="proof-coordinator"><a class="header" href="#proof-coordinator">Proof Coordinator</a></h3>
-<p>The Proof Coordinator is a simple TCP server that manages communication with a component called the Prover. The Prover acts as a simple TCP client that makes requests to prove a block to the Coordinator. It responds with the proof input data required to generate the proof. Then, the Prover executes a zkVM, generates the Groth16 proof, and sends it back to the Coordinator.</p>
-<p>The Proof Coordinator centralizes the responsibility of determining which block needs to be proven next and how to retrieve the necessary data for proving. This design simplifies the system by reducing the complexity of the Prover, it only makes requests and proves blocks.</p>
-<p>For more information about the Proof Coordinator, the Prover, and the proving process itself, see the <a href="./prover.html">Prover Docs</a>.</p>
-<h3 id="l1-proof-sender"><a class="header" href="#l1-proof-sender">L1 Proof Sender</a></h3>
-<p>The L1 Proof Sender is responsible for interacting with Ethereum L1 to manage proof verification. Its key functionalities include:</p>
-<ul>
-<li>Connecting to Ethereum L1 to send proofs for verification.</li>
-<li>Dynamically determine required proof types based on active verifier contracts (<code>REQUIRE_&lt;prover&gt;_PROOF</code>).</li>
-<li>Ensure blocks are verified in the correct order by invoking the <code>verify(..)</code> function in the <code>OnChainProposer</code> contract. Upon successful verification, an event is emitted to confirm the block's verification status.</li>
-<li>Operating on a configured interval defined by <code>proof_send_interval_ms</code>.</li>
-</ul>
-<h2 id="configuration"><a class="header" href="#configuration">Configuration</a></h2>
-<p>Configuration is done either by CLI flags or through environment variables. Run <code>cargo run --release --bin ethrex -- l2 --help</code> in the repository's root directory to see the available CLI flags and envs.</p>
-
+<h1 id="transaction-fees"><a class="header" href="#transaction-fees">Transaction Fees</a></h1>
+<p>This page describes the different types of transaction fees that the Ethrex L2 rollup can charge and how they can be configured.</p>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>Privileged transactions are exempt from all fees.</p>
+</div>
+<h2 id="priority-fee"><a class="header" href="#priority-fee">Priority Fee</a></h2>
+<p>The priority fee works exactly the same way as on Ethereum L1.<br />
+It is an additional tip paid by the transaction sender to incentivize the sequencer to prioritize the inclusion of their transaction.<br />
+The priority fee is always forwarded directly to the sequencer’s coinbase address.</p>
+<h2 id="base-fee"><a class="header" href="#base-fee">Base Fee</a></h2>
+<p>The base fee follows the same rules as the Ethereum L1 base fee. It adjusts dynamically depending on network congestion to ensure stable transaction pricing.<br />
+By default, base fees are burned. However, a sequencer can configure a <code>base fee vault</code> address to receive the collected base fees instead of burning them.</p>
+<pre><code class="language-sh">ethrex l2 --block-producer.base-fee-vault-address &lt;l2-base-fee-vault-address&gt;
+</code></pre>
+<div class="mdbook-alerts mdbook-alerts-caution">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  caution
+</p>
+<p>If the base fee vault and coinbase addresses are the same, its balance will change in a way that differs from the standard L1 behavior, which may break assumptions about EVM compatibility.</p>
+</div>
+<h2 id="operator-fee"><a class="header" href="#operator-fee">Operator Fee</a></h2>
+<p>The operator fee represents an additional per-gas cost charged by the sequencer to cover the operational costs of maintaining the L2 infrastructure.</p>
+<p>This fee works similarly to the base fee — it is <strong>multiplied by the gas used</strong> for each transaction.<br />
+All collected operator fees are deposited into a dedicated <code>operator fee vault</code> address.</p>
+<p>To set the operator fee amount:</p>
+<pre><code class="language-sh">ethrex l2 --block-producer.operator-fee-per-gas &lt;amount-in-wei&gt;
+</code></pre>
+<p>To set the operator fee vault address:</p>
+<pre><code class="language-sh">ethrex l2 --block-producer.operator-fee-vault-address &lt;operator-fee-vault-address&gt;
+</code></pre>
+<div class="mdbook-alerts mdbook-alerts-caution">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  caution
+</p>
+<p>If the operator fee vault and coinbase addresses are the same, its balance will change in a way that differs from the standard L1 behavior, which may break assumptions about EVM compatibility.</p>
+</div>
+<hr />
+<h2 id="fee-calculation"><a class="header" href="#fee-calculation">Fee Calculation</a></h2>
+<p>When executing a transaction, all gas-related fees are subject to the <strong><code>max_fee_per_gas</code></strong> value defined in the transaction.<br />
+This value acts as an absolute cap over the <strong>sum of all fee components</strong>.</p>
+<p>This means that the <strong>effective priority fee</strong> is capped to ensure the total does not exceed <code>max_fee_per_gas</code>.<br />
+Specifically:</p>
+<pre><code>effective_priority_fee_per_gas = min(
+    max_priority_fee_per_gas,
+    max_fee_per_gas - base_fee_per_gas - operator_fee_per_gas
+)
+</code></pre>
+<p>Then, the total fees are calculated as:</p>
+<pre><code class="language-sh">total_fees = (base_fee_per_gas + operator_fee_per_gas + priority_fee_per_gas) * gas_used
+</code></pre>
+<p>This behavior ensures that transaction senders <strong>never pay more than <code>max_fee_per_gas * gas_used</code></strong>, even when the operator fee is enabled.</p>
+<div class="mdbook-alerts mdbook-alerts-important">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  important
+</p>
+<p>The current <code>effective_gas_price</code> field in the transaction receipt <strong>does not include</strong> the operator fee component.<br />
+Therefore, <code>effective_gas_price * gas_used</code> will only reflect the <strong>base + priority</strong> portions of the total cost.</p>
+</div>
+<div class="mdbook-alerts mdbook-alerts-important">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  important
+</p>
+<p>The <code>eth_gasPrice</code> RPC endpoint has been <strong>modified</strong> to include the <code>operator_fee_per_gas</code> value when the operator fee mechanism is active.<br />
+This means that the value returned by <code>eth_gasPrice</code> corresponds to <code>base_fee_per_gas + operator_fee_per_gas + estimated_gas_tip</code>.</p>
+</div>
+<h2 id="l1-fees"><a class="header" href="#l1-fees">L1 Fees</a></h2>
+<p>L1 fees represent the cost of posting data from the L2 to the L1.<br />
+Each transaction is charged based on the amount of <strong>L1 Blob space</strong> it occupies (the size of the transaction’s <strong>stateDiff</strong>).</p>
+<p>After each transaction is executed, the sequencer calculates the <code>stateDiff</code> generated by that transaction.<br />
+The L1 fee for that transaction is computed as:</p>
+<pre><code>l1_fee = blob_base_fee_per_byte * tx_state_diff_size
+</code></pre>
+<p>An additional amount of gas (<code>l1_gas</code>) is added to the transaction execution so that:</p>
+<pre><code>l1_gas * gas_price = l1_fee
+</code></pre>
+<p>This guarantees that the total amount charged to the user never exceeds <code>gas_limit * gas_price</code>, while transparently accounting for the L1 posting cost.<br />
+Importantly, this process happens automatically — users do <strong>not</strong> need to perform any additional steps.<br />
+Calls to <code>eth_estimateGas</code> already inherit this behavior and will include the extra gas required for the L1 fee.</p>
+<p>The computed L1 fee is deducted from the sender’s balance and transferred to the <code>L1 Fee Vault</code> address.</p>
+<p>The <strong>blob base fee per byte</strong> is derived from the L1 <code>BlobBaseFee</code>.<br />
+The <code>L1Watcher</code> periodically fetches the <code>BlobBaseFee</code> from L1 (at a configured interval) and uses it to compute:</p>
+<pre><code>blob_base_fee_per_byte = (l1_fee_per_blob_gas * GAS_PER_BLOB) / SAFE_BYTES_PER_BLOB
+</code></pre>
+<p>See <a href="./state_diffs.html">State Diffs</a> for more information about how <code>stateDiffs</code> works.</p>
+<p>L1 fee is deactivated by default. To activate it, configure the <strong>L1 fee vault address</strong>:</p>
+<pre><code class="language-sh">ethrex l2 --block-producer.l1-fee-vault-address &lt;l1-fee-vault-address&gt;
+</code></pre>
+<p>To configure the <strong>interval</strong> at which the <code>BlobBaseFee</code> is fetched from L1:</p>
+<pre><code class="language-sh">ethrex l2 --block-producer.blob-base-fee-update-interval &lt;milliseconds&gt;
+</code></pre>
+<div class="mdbook-alerts mdbook-alerts-caution">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  caution
+</p>
+<p>If the L1 fee vault and coinbase addresses are the same, its balance will change in a way that differs from the standard L1 behavior, which may break assumptions about EVM compatibility.</p>
+</div>
+<h2 id="useful-rpc-methods"><a class="header" href="#useful-rpc-methods">Useful RPC Methods</a></h2>
+<p>The following custom RPC methods are available to query fee-related parameters directly from the L2 node.<br />
+Each method accepts a single argument: the <strong><code>block_number</code></strong> to query historical or current values.</p>
+<div class="table-wrapper"><table><thead><tr><th>Method Name</th><th>Description</th><th>Example</th></tr></thead><tbody>
+<tr><td><code>ethrex_getBaseFeeVaultAddress</code></td><td>Returns the address configured to receive the <strong>base fees</strong> collected in the specified block.</td><td><code>ethrex_getBaseFeeVaultAddress {"block_number": 12345}</code></td></tr>
+<tr><td><code>ethrex_getOperatorFeeVaultAddress</code></td><td>Returns the address configured as the <strong>operator fee vault</strong> in the specified block.</td><td><code>ethrex_getOperatorFeeVaultAddress {"block_number": 12345}</code></td></tr>
+<tr><td><code>ethrex_getOperatorFee</code></td><td>Returns the <strong>operator fee per gas</strong> value active at the specified block.</td><td><code>ethrex_getOperatorFee {"block_number": 12345}</code></td></tr>
+<tr><td><code>ethrex_getL1BlobBaseFee</code></td><td>Returns the <strong>L1 blob base fee per gas</strong> fetched from L1 and used for L1 fee computation at the specified block.</td><td><code>ethrex_getL1BlobBaseFee {"block_number": 12345}</code></td></tr>
+</tbody></table>
+</div>
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../../l2/architecture/overview.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../../l2/fundamentals/based.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../../l2/architecture/prover.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../../developers/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -281,11 +370,11 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../../l2/architecture/overview.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../../l2/fundamentals/based.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../../l2/architecture/prover.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../../developers/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

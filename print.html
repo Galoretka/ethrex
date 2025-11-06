@@ -246,35 +246,68 @@ The client supports running in two different modes:</p>
 <li>As a multi-prover ZK-Rollup (supporting SP1, RISC Zero and TEEs), where block execution is proven and the proof sent to an L1 network for verification, thus inheriting the L1's security. Support for based sequencing is currently in the works.</li>
 </ul>
 <p>We call the first one "ethrex L1" and the second one "ethrex L2".</p>
-<h2 id="quickstart"><a class="header" href="#quickstart">Quickstart</a></h2>
-<h3 id="l1-run-an-ethereum-node"><a class="header" href="#l1-run-an-ethereum-node">L1: Run an Ethereum Node</a></h3>
-<p>Follow these steps to quickly launch an Ethereum L1 (mainnet) node using Docker. For advanced details, see the links at the end.</p>
-<h4 id="supported-networks"><a class="header" href="#supported-networks">Supported Networks</a></h4>
-<ul>
-<li><strong>mainnet</strong></li>
-<li><strong>sepolia</strong></li>
-<li><strong>holesky</strong></li>
-<li><strong>hoodi</strong></li>
-</ul>
-<p>By default, the command below runs a node on mainnet. To use a different network, change the <code>ETHREX_NETWORK</code> environment variable with one of the networks above.</p>
-<pre><code class="language-sh">curl -LO https://raw.githubusercontent.com/lambdaclass/ethrex/refs/heads/main/docker-compose.yaml
-ETHREX_NETWORK=mainnet docker compose up
+<h2 id="quickstart-l1"><a class="header" href="#quickstart-l1">Quickstart L1</a></h2>
+<p>Follow these steps to sync an ethrex node on the Hoodi testnet.</p>
+<h3 id="macos"><a class="header" href="#macos">MacOS</a></h3>
+<p>Install ethrex and lighthouse:</p>
+<pre><code class="language-sh"># install lightouse and ethrex
+brew install lambdaclass/tap/ethrex
+brew install lighthouse
+
+# create secrets directory and jwt secret
+mkdir -p ethereum/secrets/
+cd ethereum/
+openssl rand -hex 32 | tr -d "\n" | tee ./secrets/jwt.hex
 </code></pre>
-<p>This will start an ethrex node along with a Lighthouse consensus client that syncs with the Ethereum network.</p>
-<h3 id="l2-run-an-l2-node"><a class="header" href="#l2-run-an-l2-node">L2: Run an L2 Node</a></h3>
-<p>Follow these steps to quickly launch an L2 node using Docker. For advanced details, see the links at the end.</p>
-<pre><code class="language-sh">docker run -p 1729:1729 ghcr.io/lambdaclass/ethrex:main l2 --dev
+<p>On one terminal:</p>
+<pre><code class="language-sh">ethrex --authrpc.jwtsecret ./secrets/jwt.hex --network hoodi
 </code></pre>
-<p>This will start a local L1 and L2 network.</p>
+<p>and on another one:</p>
+<pre><code class="language-sh">lighthouse bn --network hoodi --execution-endpoint http://localhost:8551 --execution-jwt ./secrets/jwt.hex --checkpoint-sync-url https://hoodi.checkpoint.sigp.io --http
+</code></pre>
+<h3 id="linux-x86"><a class="header" href="#linux-x86">Linux x86</a></h3>
+<p>Install ethrex and lighthouse:</p>
+<pre><code class="language-sh"># create secrets directory and jwt secret
+mkdir -p ethereum/secrets/
+cd ethereum/
+openssl rand -hex 32 | tr -d "\n" | tee ./secrets/jwt.hex
+
+# install lightouse and ethrex
+curl -L https://github.com/lambdaclass/ethrex/releases/latest/download/ethrex-linux-x86_64 -o ethrex
+chmod +x ethrex
+curl -LO https://github.com/sigp/lighthouse/releases/download/v7.1.0/lighthouse-v7.1.0-x86_64-unknown-linux-gnu.tar.gz
+tar -xvf lighthouse-v7.1.0-x86_64-unknown-linux-gnu.tar.gz
+</code></pre>
+<p>On one terminal:</p>
+<pre><code class="language-sh">./ethrex --authrpc.jwtsecret ./secrets/jwt.hex --network hoodi
+</code></pre>
+<p>and on another one:</p>
+<pre><code class="language-sh">./lighthouse bn --network hoodi --execution-endpoint http://localhost:8551 --execution-jwt ./secrets/jwt.hex --checkpoint-sync-url https://hoodi.checkpoint.sigp.io --http
+</code></pre>
+<p>For other CPU architectures, see the <a href="https://github.com/lambdaclass/ethrex/releases/">releases page</a>.</p>
+<h2 id="quickstart-l2"><a class="header" href="#quickstart-l2">Quickstart L2</a></h2>
+<p>Follow these steps to quickly launch a local L2 node. For advanced options and real deployments, see the links at the end.</p>
+<h3 id="macos-1"><a class="header" href="#macos-1">MacOS</a></h3>
+<pre><code class="language-sh"># install ethrex
+brew install lambdaclass/tap/ethrex
+ethrex l2 --dev
+</code></pre>
+<h3 id="linux-x86-1"><a class="header" href="#linux-x86-1">Linux x86</a></h3>
+<pre><code class="language-sh"># install ethrex
+curl -L https://github.com/lambdaclass/ethrex/releases/latest/download/ethrex-linux-x86_64 -o ethrex
+chmod +x ethrex
+./ethrex l2 --dev
+</code></pre>
+<p>For other CPU architectures, see the <a href="https://github.com/lambdaclass/ethrex/releases/">releases page</a>.</p>
 <h2 id="where-to-start"><a class="header" href="#where-to-start">Where to Start</a></h2>
 <ul>
 <li>
-<p><strong>Just want to run an Ethereum node?</strong></p>
-<p>Start with the <a href="getting-started/index.html#quickstart">Quickstart</a> or see <a href="getting-started/../l1/running">Node operation</a> for setup, configuration, monitoring, and best practices.</p>
+<p><strong>Want to run ethrex in production as an execution client?</strong></p>
+<p>See <a href="getting-started/../l1/running">Node operation</a> for setup, configuration, monitoring, and best practices.</p>
 </li>
 <li>
-<p><strong>Interested in building your own L2?</strong></p>
-<p>Begin with the <a href="getting-started/../l2/introduction.html">L2 introduction</a>, <a href="getting-started/../getting-started/quickstart-l2.html">L2 quickstart</a>, and see <a href="getting-started/../l2/deploy.html">L2 rollup deployment</a> for launching your own rollup, deploying contracts, and interacting with your L2.</p>
+<p><strong>Interested in deploying your own L2?</strong></p>
+<p>See <a href="getting-started/../l2/deploy.html">L2 rollup deployment</a> for launching your own rollup, deploying contracts, and interacting with your L2.</p>
 </li>
 <li>
 <p><strong>Looking to contribute or develop?</strong></p>
@@ -284,175 +317,6 @@ ETHREX_NETWORK=mainnet docker compose up
 <p><strong>Want to understand how ethrex works?</strong></p>
 <p>Explore <a href="getting-started/../l1/fundamentals">L1 fundamentals</a> and <a href="getting-started/../l2/architecture">L2 Architecture</a> for deep dives into ethrex's design, sync modes, networking, and more.</p>
 </li>
-</ul>
-<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<style>
-.mdbook-alerts {
-  padding: 8px 16px;
-  margin-bottom: 16px;
-  border-left: 0.25em solid var(--mdbook-alerts-color);
-}
-
-.mdbook-alerts > *:first-child {
-  margin-top: 0;
-}
-
-.mdbook-alerts > *:last-child {
-  margin-bottom: 0;
-}
-
-.mdbook-alerts-title {
-  display: flex;
-  font-weight: 600;
-  align-items: center;
-  line-height: 1;
-  color: var(--mdbook-alerts-color);
-  text-transform: capitalize;
-}
-
-.mdbook-alerts-icon {
-  display: inline-block;
-  width: 1em;
-  height: 1em;
-  margin-right: 0.2em;
-  background-color: currentColor;
-  -webkit-mask: no-repeat center / 100%;
-  mask: no-repeat center / 100%;
-  -webkit-mask-image: var(--mdbook-alerts-icon);
-  mask-image: var(--mdbook-alerts-icon);
-}
-
-.mdbook-alerts-note {
-  --mdbook-alerts-color: rgb(9, 105, 218);
-  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
-  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
-}
-
-.mdbook-alerts-tip {
-  --mdbook-alerts-color: rgb(26, 127, 55);
-  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
-  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
-}
-
-.mdbook-alerts-important {
-  --mdbook-alerts-color: rgb(130, 80, 223);
-  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
-  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
-}
-
-.mdbook-alerts-warning {
-  --mdbook-alerts-color: rgb(154, 103, 0);
-  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
-  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
-}
-
-.mdbook-alerts-caution {
-  --mdbook-alerts-color: rgb(207, 34, 46);
-  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
-  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
-}
-
-</style>
-<h1 id="quickstart-run-an-ethereum-l1-node"><a class="header" href="#quickstart-run-an-ethereum-l1-node">Quickstart: Run an Ethereum L1 Node</a></h1>
-<p>Follow these steps to quickly launch an Ethereum L1 (mainnet) node using Docker. For advanced details, see the links at the end.</p>
-<h2 id="supported-networks-1"><a class="header" href="#supported-networks-1">Supported Networks</a></h2>
-<ul>
-<li><strong>mainnet</strong></li>
-<li><strong>sepolia</strong></li>
-<li><strong>holesky</strong></li>
-<li><strong>hoodi</strong></li>
-</ul>
-<p>By default, the command below run a node on mainnet. To use a different network, change the <code>ETHREX_NETWORK</code> environment variable with one of the networks above.</p>
-<pre><code class="language-sh">curl -LO https://raw.githubusercontent.com/lambdaclass/ethrex/refs/heads/main/docker-compose.yaml
-ETHREX_NETWORK=mainnet docker compose up
-</code></pre>
-<p>This will start an ethrex node along with a Lighthouse consensus client that syncs with the Ethereum network.</p>
-<hr />
-<p>For more details on installation, flags, and supported networks:</p>
-<ul>
-<li><a href="getting-started/./installation">Installation</a></li>
-<li><a href="getting-started/../l1/running">Advanced options and networks</a></li>
-</ul>
-<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<style>
-.mdbook-alerts {
-  padding: 8px 16px;
-  margin-bottom: 16px;
-  border-left: 0.25em solid var(--mdbook-alerts-color);
-}
-
-.mdbook-alerts > *:first-child {
-  margin-top: 0;
-}
-
-.mdbook-alerts > *:last-child {
-  margin-bottom: 0;
-}
-
-.mdbook-alerts-title {
-  display: flex;
-  font-weight: 600;
-  align-items: center;
-  line-height: 1;
-  color: var(--mdbook-alerts-color);
-  text-transform: capitalize;
-}
-
-.mdbook-alerts-icon {
-  display: inline-block;
-  width: 1em;
-  height: 1em;
-  margin-right: 0.2em;
-  background-color: currentColor;
-  -webkit-mask: no-repeat center / 100%;
-  mask: no-repeat center / 100%;
-  -webkit-mask-image: var(--mdbook-alerts-icon);
-  mask-image: var(--mdbook-alerts-icon);
-}
-
-.mdbook-alerts-note {
-  --mdbook-alerts-color: rgb(9, 105, 218);
-  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
-  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
-}
-
-.mdbook-alerts-tip {
-  --mdbook-alerts-color: rgb(26, 127, 55);
-  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
-  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
-}
-
-.mdbook-alerts-important {
-  --mdbook-alerts-color: rgb(130, 80, 223);
-  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
-  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
-}
-
-.mdbook-alerts-warning {
-  --mdbook-alerts-color: rgb(154, 103, 0);
-  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
-  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
-}
-
-.mdbook-alerts-caution {
-  --mdbook-alerts-color: rgb(207, 34, 46);
-  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
-  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
-}
-
-</style>
-<h1 id="quickstart-run-an-l2-node"><a class="header" href="#quickstart-run-an-l2-node">Quickstart: Run an L2 Node</a></h1>
-<p><strong>Ethrex</strong> is a framework that lets you launch your own L2 rollup or blockchain. With ethrex, you can deploy, run, and experiment with custom L2 networks, taking advantage of Ethereum's security while enabling high throughput and low fees.</p>
-<h2 id="start-a-development-l2"><a class="header" href="#start-a-development-l2">Start a development L2</a></h2>
-<p>Follow these steps to quickly launch an L2 node using Docker. For advanced details, see the links at the end.</p>
-<pre><code class="language-sh">docker run -p 1729:1729 ghcr.io/lambdaclass/ethrex:main l2 --dev
-</code></pre>
-<p>This will start a local L1 and L2 network. A JSON-RPC server compatible with Ethereum clients will be available at <code>http://localhost:1729</code>.</p>
-<hr />
-<p>For more details and configuration options, see:</p>
-<ul>
-<li><a href="getting-started/./installation">Installation</a></li>
-<li><a href="getting-started/../l2/introduction.html">Advanced options and more details</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <style>
@@ -609,21 +473,21 @@ ETHREX_NETWORK=mainnet docker compose up
 <h2 id="download-the-latest-release"><a class="header" href="#download-the-latest-release">Download the latest release</a></h2>
 <p>Download the latest ethrex release for your OS from the <a href="https://github.com/lambdaclass/ethrex/releases/latest" target="_blank">GitHub Releases page</a>.</p>
 <h3 id="linux-x86_64"><a class="header" href="#linux-x86_64">Linux x86_64</a></h3>
-<pre><code class="language-sh">curl -L https://github.com/lambdaclass/ethrex/releases/latest/download/ethrex-linux_x86_64 -o ethrex
+<pre><code class="language-sh">curl -L https://github.com/lambdaclass/ethrex/releases/latest/download/ethrex-linux-x86_64 -o ethrex
 </code></pre>
 <h4 id="linux-x86_64-with-gpu-support-for-l2-prover"><a class="header" href="#linux-x86_64-with-gpu-support-for-l2-prover">Linux x86_64 with GPU support (for L2 prover)</a></h4>
 <p>If you want to run an L2 prover with GPU acceleration, download the GPU-enabled binary:</p>
-<pre><code class="language-sh">curl -L https://github.com/lambdaclass/ethrex/releases/latest/download/ethrex-linux_x86_64-gpu -o ethrex
+<pre><code class="language-sh">curl -L https://github.com/lambdaclass/ethrex/releases/latest/download/ethrex-linux-x86_64-gpu -o ethrex
 </code></pre>
 <h3 id="linux-arm-aarch64"><a class="header" href="#linux-arm-aarch64">Linux ARM (aarch64)</a></h3>
-<pre><code class="language-sh">curl -L https://github.com/lambdaclass/ethrex/releases/latest/download/ethrex-linux_aarch64 -o ethrex
+<pre><code class="language-sh">curl -L https://github.com/lambdaclass/ethrex/releases/latest/download/ethrex-linux-aarch64 -o ethrex
 </code></pre>
 <h4 id="linux-arm-aarch64-with-gpu-support-for-l2-prover"><a class="header" href="#linux-arm-aarch64-with-gpu-support-for-l2-prover">Linux ARM (aarch64) with GPU support (for L2 prover)</a></h4>
 <p>If you want to run an L2 prover with GPU acceleration, download the GPU-enabled binary:</p>
-<pre><code class="language-sh">curl -L https://github.com/lambdaclass/ethrex/releases/latest/download/ethrex-linux_aarch64-gpu -o ethrex
+<pre><code class="language-sh">curl -L https://github.com/lambdaclass/ethrex/releases/latest/download/ethrex-linux-aarch64-gpu -o ethrex
 </code></pre>
 <h3 id="macos-apple-silicon-aarch64"><a class="header" href="#macos-apple-silicon-aarch64">macOS (Apple Silicon, aarch64)</a></h3>
-<pre><code class="language-sh">curl -L https://github.com/lambdaclass/ethrex/releases/latest/download/ethrex-macos_aarch64 -o ethrex
+<pre><code class="language-sh">curl -L https://github.com/lambdaclass/ethrex/releases/latest/download/ethrex-macos-aarch64 -o ethrex
 </code></pre>
 <h2 id="set-execution-permissions"><a class="header" href="#set-execution-permissions">Set execution permissions</a></h2>
 <p>Make the binary executable:</p>
@@ -637,12 +501,6 @@ ETHREX_NETWORK=mainnet docker compose up
 <p>Check that Ethrex is installed and working:</p>
 <pre><code class="language-sh">ethrex --version
 </code></pre>
-<hr />
-<p><strong>Next steps:</strong></p>
-<ul>
-<li><a href="getting-started/installation/../quickstart-l1.html">L1 Quickstart</a></li>
-<li><a href="getting-started/installation/../quickstart-l2.html">L2 Quickstart</a></li>
-</ul>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <style>
 .mdbook-alerts {
@@ -841,12 +699,6 @@ ETHREX_NETWORK=mainnet docker compose up
 <p><strong>Stop the node:</strong></p>
 <pre><code class="language-sh">docker stop ethrex
 </code></pre>
-<hr />
-<p><strong>Next steps:</strong></p>
-<ul>
-<li><a href="getting-started/installation/../quickstart-l1.html">L1 Quickstart</a></li>
-<li><a href="getting-started/installation/../quickstart-l2.html">L2 Quickstart</a></li>
-</ul>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <style>
 .mdbook-alerts {
@@ -920,6 +772,7 @@ ETHREX_NETWORK=mainnet docker compose up
 <h2 id="prerequisites-2"><a class="header" href="#prerequisites-2">Prerequisites</a></h2>
 <ul>
 <li><a href="https://www.rust-lang.org/tools/install">Rust toolchain</a> (use <code>rustup</code> for easiest setup)</li>
+<li><a href="https://clang.llvm.org/docs/index.html">libclang</a> (for RocksDB)</li>
 <li><a href="https://git-scm.com/downloads">Git</a></li>
 <li><a href="https://docs.soliditylang.org/en/v0.8.30/installing-solidity.html">solc</a> (for L2 development)</li>
 </ul>
@@ -964,12 +817,6 @@ cd ethrex
 <p><strong>(Optional) Move the binary to your <code>$PATH</code>:</strong></p>
 <pre><code class="language-sh">sudo mv ./target/release/ethrex /usr/local/bin/
 </code></pre>
-<hr />
-<p><strong>Next steps:</strong></p>
-<ul>
-<li><a href="getting-started/installation/../quickstart-l1.html">L1 Quickstart</a></li>
-<li><a href="getting-started/installation/../quickstart-l2.html">L2 Quickstart</a></li>
-</ul>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <style>
 .mdbook-alerts {
@@ -1203,7 +1050,7 @@ cd ethrex
 
 </style>
 <h1 id="node-startup"><a class="header" href="#node-startup">Node startup</a></h1>
-<h2 id="supported-networks-2"><a class="header" href="#supported-networks-2">Supported networks</a></h2>
+<h2 id="supported-networks"><a class="header" href="#supported-networks">Supported networks</a></h2>
 <p>Ethrex is designed to support Ethereum mainnet and its testnets</p>
 <div class="table-wrapper"><table><thead><tr><th>Network</th><th>Chain id</th><th>Supported sync modes</th></tr></thead><tbody>
 <tr><td>mainnet</td><td>1</td><td>snap</td></tr>
@@ -1884,11 +1731,238 @@ Also, the <code>storage_healer</code> will be spawned earlier, during state sync
 }
 
 </style>
+<h1 id="healing-algorithm-explanation-and-documentation-before-path-based"><a class="header" href="#healing-algorithm-explanation-and-documentation-before-path-based">Healing Algorithm Explanation and Documentation (Before Path Based)</a></h1>
+<p>Healing is the last step of Snap Sync. Snap begins the downloading of the state and storage tries by downloading the leaves (account states and storage slots), and from those leaves we reconstruct the intermediate nodes (branches and extension). Afterwards we may be left with a malformed trie, as that step will resume the download of leaves with a new state root if the old one times out.</p>
+<p>The purpose of the healing algorithm is “heal” that trie so that it ends up in a consistent state.</p>
+<h1 id="healing-conceptually"><a class="header" href="#healing-conceptually">Healing Conceptually</a></h1>
+<p>The malformed trie is going to have large sections of the trie which are in a correct state, as we had all of the leaves in that sections and those accounts haven’t been modified in the blocks that happened concurrently to the snapsync algorithm.</p>
+<p><img src="internal/l1/healing/Example_1_Step_0.svg" alt="Image of a trie, where the root node is in red, indicating that it’s in an incorrect state. It points to two branches, one is correct and one was computed from faulty data, and such doesn’t exist in the latest block" /></p>
+<p>Example of a trie where 3 leaves where downloaded in block 1 and 1 was downloaded in block 2. The trie root is different from the state root of block 2, as one of the leaf nodes was modified in block 2.</p>
+<p>The algorithm attempts to rebuild the trie through downloading the missing nodes, starting from the top. If the node is present in the database that means that we have that and all of their child nodes present in the database. If not, we download the node and check if the children of the root are present, applying the algorithm recursively.</p>
+<p><img src="internal/l1/healing/Example_1_Step_1.svg" alt="Iteration 1 of algorithm" /></p>
+<p>Iteration 1 of algorithm</p>
+<p><img src="internal/l1/healing/Example_1_Step_2.svg" alt="Iteration 2 of algorithm" /></p>
+<p>Iteration 2 of algorithm</p>
+<p><img src="internal/l1/healing/Example_1_Step_3.svg" alt="Iteration 3 of algorithm" /></p>
+<p>Iteration 3 of algorithm</p>
+<p><img src="internal/l1/healing/Example_1_Step_4.svg" alt="Final state of trie after healing" /></p>
+<p>Final state of trie after healing</p>
+<h1 id="implementation"><a class="header" href="#implementation">Implementation</a></h1>
+<p>The algorithm is implemented in ethrex currently in <code>crates/networking/p2p/sync/state_healings.rs</code> and <code>crates/networking/p2p/sync/storage_healing.rs</code>. All of our code examples are from the account state trie.</p>
+<h3 id="api"><a class="header" href="#api">API</a></h3>
+<p>The API used is the ethereum capability snap/1, documented at https://github.com/ethereum/devp2p/blob/master/caps/snap.md and for healing the only method used is <code>GetTrieNodes</code>. This method allows us to ask our peers for nodes in a trie. We ask the nodes by <strong>path</strong> to the node, not by hash.</p>
+<pre><pre class="playground"><code class="language-rust edition2024"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub struct GetTrieNodes {    
+    pub id: u64,    
+    pub root_hash: H256,    
+    // [[acc_path, slot_path_1, slot_path_2,...]...]    
+    // The paths can be either full paths (hash) or 
+    // only the partial path (compact-encoded nibbles)    
+    pub paths: Vec&lt;Vec&lt;Bytes&gt;&gt;,    
+    pub bytes: u64,
+}
+<span class="boring">}</span></code></pre></pre>
+<h3 id="staleness"><a class="header" href="#staleness">Staleness</a></h3>
+<p>The spec allows the nodes to stop responding if the request is older than 128 blocks. In that case, the response to the <code>GetTrieNodes</code> will be empty. As such, our algorithm checks periodically if the block is stale, and stops executing. In that scenario, we must be sure that the we leave the storage in a consistent state at any given time and doesn’t break our invariants.</p>
+<pre><pre class="playground"><code class="language-rust edition2024"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Current Staleness logic code
+// We check with a clock if we are stale        
+if !is_stale &amp;&amp; current_unix_time() &gt; staleness_timestamp {
+    info!("state healing is stale");            
+    is_stale = true;       
+}
+// We make sure that we have stored everything that we need to the database
+if is_stale &amp;&amp; nodes_to_heal.is_empty() &amp;&amp; inflight_tasks == 0 {
+  info!("Finished inflight tasks");            
+  db_joinset.join_all().await;            
+  break;
+}
+<span class="boring">}</span></code></pre></pre>
+<h3 id="membatch"><a class="header" href="#membatch">Membatch</a></h3>
+<p>Currently, our algorithm has an invariant, which is that if we have a node in storage we have its and all of its children are present. Therefore, when we download for a node if some of it’s children are missing we can’t immediately store it on disk. Our implementation currently stores the nodes in temporary structure called membatch, which stores the node and how many of it’s children are missing. When a child gets stored, we reduce the counter of missing children of the parent. If that numbers reaches 0, we write the parent to the database.</p>
+<p>In code, the membatch is current <code>HashMap&lt;Nibbles, MembatchEntryValue&gt;</code> with the value being the following struct</p>
+<pre><pre class="playground"><code class="language-rust edition2024"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub struct MembatchEntryValue {
+    /// The node to be flushed into storage
+    node: Node,
+    /// How many of the nodes that are child of this are not in storage
+    children_not_in_storage_count: u64,
+    /// Which is the parent of this node
+    parent_path: Nibbles,
+}
+<span class="boring">}</span></code></pre></pre>
+<h2 id="known-optimization-issues"><a class="header" href="#known-optimization-issues">Known Optimization Issues</a></h2>
+<ul>
+<li>Membatch gets cleared between iterations, while it could be preserved and the hash checked.</li>
+<li>When checking if a child is present in storage, we can also check if it’s in the membatch. If it is, we can skip that download and act like we have immediately downloaded that node.</li>
+<li>Membatch is currently a <code>HashMap</code>, a <code>BTreeMap</code> or other structures may be faster in real use.</li>
+<li>Storage healing receives as a parameter a list of accounts that need to be healed and it has get their state before it can run. Doing those reads could be more efficient.</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h2 id="can-you-delete-accounts-in-ethereum-yes"><a class="header" href="#can-you-delete-accounts-in-ethereum-yes">Can you delete accounts in Ethereum? Yes</a></h2>
+<h3 id="how-it-happens"><a class="header" href="#how-it-happens">How it happens</a></h3>
+<p>Ethereum accounts are broadly divided into two categories:</p>
+<ul>
+<li>Externally Owned Accounts (EOA): accounts for general users to transfer eth and call contracts.</li>
+<li>Contracts: which execute code and store data.</li>
+</ul>
+<p>Creating EOA is done through sending ETH into a new address, at which point the account is created and added into the state trie.</p>
+<p>Creating a contract can be done through the CREATE and <a href="https://eips.ethereum.org/EIPS/eip-1014">CREATE2</a> opcode. Notably, those opcodes check that the account is created at an address where the code is empty and the nonce is zero, but <strong>it doesn't check balance</strong>. As such, a contract can be created through taking over an existing account.</p>
+<p>During the creating of a contract, the <code>init_code</code> is run which can include the <a href="https://eips.ethereum.org/EIPS/eip-6780">self destruct opcode</a> that deletes the contract in the same transaction it was created. Normally, this deletes an account that was created in the same transaction (because contracts are usually created over empty accounts) but in this case the account already existed because it already had some balance. This is the only edge case in which an account can go from existing to non-existing from one block to another after the Cancun fork.</p>
+<h3 id="how-we-found-it"><a class="header" href="#how-we-found-it">How we found it</a></h3>
+<p>Snap-sync is broadly divided into two stages:</p>
+<ul>
+<li>Downloading the leaves of the state (account states) and storage tries (storage slots)</li>
+<li>Healing (reconciling the state).</li>
+</ul>
+<p>Healing is needed because the leaves can be downloaded from disparate blocks, and to "fix" only the nodes of the trie that changed between nodes. <a href="https://www.notion.so/lambdaclass/Healing-Algorithm-Explanation-and-Documentation-269b9462471380e4a275edd77c8b5dc5?source=copy_link">In depth explanation</a>.</p>
+<p>We were working under the assumption that accounts were never deleted, so we adopted some specific optimizations. During the state healing stage every account that was "healed" was added into a list of accounts that needed to be checked for storage healing. When healing the storage of those accounts the algorithm requested their account states and expected them to be there to see if they had any storage that needed healing. This lead to the storage healing threads panicking when they failed to find the account that was deleted.</p>
+<p>During the test of snapsync mainnet, we started seeing that storage healing was panicking, so we added some logs to see what account hashes were being accessed and when where they healed vs accessed. Exploring the database we saw that the offending account was present in a previous state and missing in the next one, with the corresponding merkle proof matching the block state root. Originally we suspected a reorg, but searching the blocks we saw they were finalized in the chain.</p>
+<p>The account state present indicated an account with nonce 0, no code and no storage but with balance. We didn't have access to the account address, as the state trie only stores the hash of the account address so we turned to another strategy to find it. Using <a href="https://docs.etherscan.io/api-endpoints/accounts#get-internal-transactions-by-block-range">etherscan's API</a> allowing to search internal transactions from a block range, we explored the range where we knew the account existed in the state trie. Hashing all of the <code>to</code> and <code>from</code> of the transactions <a href="https://etherscan.io/tx/0xf23b2c233410141cda0c6d24f21f0074c494565bfd54ce008c5ce1b30b23b0da">we found the transaction</a> that deleted the account with a self destruct. Despite the account becoming a contract just during that transaction, we saw that 900 blocks before it was <a href="https://etherscan.io/tx/0xbc9f52ba45a6915878318be944cb20bd3bb1bbf36b2ce8ff5e6575ce1689f1b6">created with a transfer</a>. The result of the self destruct was the transfer of 0.044 ETH from one account to another.</p>
+<p>The specific transaction that created the contract: https://etherscan.io/tx/0xf23b2c233410141cda0c6d24f21f0074c494565bfd54ce008c5ce1b30b23b0da</p>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
 <h1 id="introduction"><a class="header" href="#introduction">Introduction</a></h1>
 <p>Layer 2 (L2) solutions are protocols built on top of Ethereum to increase scalability and reduce transaction costs. L2s process transactions off-chain and periodically post data or proofs back to Ethereum mainnet, inheriting its security.</p>
 <p><strong>Ethrex</strong> is a framework that lets you launch your own L2 rollup or blockchain. With ethrex, you can deploy, run, and experiment with custom L2 networks, taking advantage of Ethereum's security while enabling high throughput and low fees.</p>
 <h2 id="get-started-with-your-l2"><a class="header" href="#get-started-with-your-l2">Get started with your L2</a></h2>
-<p>Check out the <a href="l2/../getting-started/quickstart-l2.html">L2 quickstart guide</a> to start your rollup in just a command, or jump right into the <a href="l2/./deploy.html">Deploy an L2</a> for more detailed instructions.</p>
+<p>Check out the <a href="l2/../getting-started#quickstart-l2">Quickstart L2 guide</a> to start your rollup in just a command, or jump right into the <a href="l2/./deploy.html">Deploy an L2</a> for more detailed instructions.</p>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <style>
 .mdbook-alerts {
@@ -2638,7 +2712,7 @@ In this section we talk a bit about them, first going through the more specific 
 <h3 id="block-producer"><a class="header" href="#block-producer">Block Producer</a></h3>
 <p>Creates Blocks with a connection to the <code>auth.rpc</code> port.</p>
 <h3 id="l1-watcher"><a class="header" href="#l1-watcher">L1 Watcher</a></h3>
-<p>This component monitors the L1 for new deposits made by users. For that, it queries the CommonBridge contract on L1 at regular intervals (defined by the config file) for new DepositInitiated() events. Once a new deposit event is detected, it creates the corresponding deposit transaction on the L2.</p>
+<p>This component monitors the L1 for new deposits made by users. For that, it queries the CommonBridge contract on L1 at regular intervals (defined by the config file) for new DepositInitiated() events. Once a new deposit event is detected, it creates the corresponding deposit transaction on the L2. It also periodically fetches the <code>BlobBaseFee</code> from L1 (at a configured interval), which is used to compute the <a href="l2/architecture/../fundamentals/transaction_fees.html#l1-fees">L1 fees</a>.</p>
 <h3 id="l1-transaction-sender-aka-l1-committer"><a class="header" href="#l1-transaction-sender-aka-l1-committer">L1 Transaction Sender (a.k.a. L1 Committer)</a></h3>
 <p>As the name suggests, this component sends transactions to the L1. But not any transaction, only commit and verify transactions.</p>
 <p>Commit transactions are sent when the Proposer wants to commit to a new batch of blocks. These transactions contain the batch data to be committed in the L1.</p>
@@ -2651,7 +2725,7 @@ In this section we talk a bit about them, first going through the more specific 
 <p>The L1 Proof Sender is responsible for interacting with Ethereum L1 to manage proof verification. Its key functionalities include:</p>
 <ul>
 <li>Connecting to Ethereum L1 to send proofs for verification.</li>
-<li>Dynamically determine required proof types based on active verifier contracts (<code>PICOVERIFIER</code>, <code>R0VERIFIER</code>, <code>SP1VERIFIER</code>).</li>
+<li>Dynamically determine required proof types based on active verifier contracts (<code>REQUIRE_&lt;prover&gt;_PROOF</code>).</li>
 <li>Ensure blocks are verified in the correct order by invoking the <code>verify(..)</code> function in the <code>OnChainProposer</code> contract. Upon successful verification, an event is emitted to confirm the block's verification status.</li>
 <li>Operating on a configured interval defined by <code>proof_send_interval_ms</code>.</li>
 </ul>
@@ -2774,7 +2848,7 @@ Before the <code>zkVM</code> code (or guest), there is a directory called <code>
 <p>ethrex-prover is able to generate execution proofs of Ethereum Mainnet/Testnet blocks. An example binary was created for this purpose in <code>crates/l2/prover/bench</code>. Refer to its README for usage.</p>
 <h3 id="dev-mode"><a class="header" href="#dev-mode">Dev Mode</a></h3>
 <p>To run the blockchain (<code>proposer</code>) and prover in conjunction, start the <code>Prover</code>, use the following command:</p>
-<pre><code class="language-sh">make init-prover T="prover_type (risc0,sp1) G=true"
+<pre><code class="language-sh">make init-prover-&lt;sp1/risc0&gt; # optional: GPU=true
 </code></pre>
 <h4 id="run-the-whole-system-with-the-prover---in-one-machine"><a class="header" href="#run-the-whole-system-with-the-prover---in-one-machine">Run the whole system with the prover - In one Machine</a></h4>
 <div class="mdbook-alerts mdbook-alerts-note">
@@ -2799,7 +2873,7 @@ Before the <code>zkVM</code> code (or guest), there is a directory called <code>
 <li>Start the L2 locally on port <code>1729</code>.</li>
 </ul>
 </li>
-<li>In a new terminal → <code>make init-prover T="(sp1,risc0)"</code>.</li>
+<li>In a new terminal → <code>make init-prover-&lt;sp1/risc0&gt; # GPU=true</code>.</li>
 </ol>
 <p>After this initialization we should have the prover running in <code>dev_mode</code> → No real proofs.</p>
 <h3 id="gpu-mode"><a class="header" href="#gpu-mode">GPU mode</a></h3>
@@ -2847,7 +2921,7 @@ echo 'export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH' &gt;&gt; ~/
 <ul>
 <li><code>Finally</code>, to start the <code>Prover</code>/<code>zkvm</code>, run:
 <ul>
-<li><code>make init-prover T=(sp1,risc0) G=true</code></li>
+<li><code>make init-prover-&lt;sp1/risc0&gt; # optional: GPU=true</code></li>
 </ul>
 </li>
 </ul>
@@ -2872,12 +2946,14 @@ ETHREX_PROOF_COORDINATOR_L1_PRIVATE_KEY=&lt;private_key&gt;
 ETHREX_PROOF_COORDINATOR_LISTEN_ADDRESS=0.0.0.0
 // Set to true to randomize the salt.
 ETHREX_DEPLOYER_RANDOMIZE_CONTRACT_DEPLOYMENT=true
-// Check if the contract is deployed in your preferred network or set to `true` to deploy it.
-ETHREX_DEPLOYER_SP1_DEPLOY_VERIFIER=true
-// Check the if the contract is present on your preferred network.
-ETHREX_DEPLOYER_RISC0_CONTRACT_VERIFIER=&lt;address&gt;
-// It can be deployed. Check the if the contract is present on your preferred network.
-ETHREX_DEPLOYER_SP1_CONTRACT_VERIFIER=&lt;address&gt;
+// Set to true if you want SP1 proofs to be required
+ETHREX_L2_SP1=true
+// Check the if the verification contract is present on your preferred network. Don't define this if you want it to be deployed automatically.
+ETHREX_DEPLOYER_SP1_VERIFIER_ADDRESS=&lt;address&gt;
+// Set to true if you want proofs to be required
+ETHREX_L2_RISC0=true
+// Check the if the contract is present on your preferred network. You shall deploy it manually if not.
+ETHREX_DEPLOYER_RISC0_VERIFIER_ADDRESS=&lt;address&gt;
 // Set to any L1 endpoint.
 ETHREX_ETH_RPC_URL=&lt;url&gt;
 </code></pre>
@@ -2941,7 +3017,7 @@ export ETHERSCAN_API_KEY="dummy"
 </code></pre>
 </li>
 <li>
-<p>if the deployment was successful you should see the contract address in the output of the command, you will need to pass this as an argument to the L2 contract deployer, or via the <code>ETHREX_DEPLOYER_RISC0_CONTRACT_VERIFIER=&lt;address&gt;</code> env. variable.
+<p>if the deployment was successful you should see the contract address in the output of the command, you will need to pass this as an argument to the L2 contract deployer, or via the <code>ETHREX_DEPLOYER_RISC0_VERIFIER_ADDRESS=&lt;address&gt;</code> env. variable.
 if you get an error like <code>risc0-ethereum/contracts/../lib/forge-std/src/Script.sol": No such file or directory (os error 2)</code>, try to update the git submodules (foundry dependencies) with <code>git submodule update --init --recursive</code>.</p>
 </li>
 </ol>
@@ -3134,7 +3210,11 @@ These proofs allow verifying that a value is included (or its key doesn't exist)
 </style>
 <h1 id="running-ethrex-in-aligned-mode"><a class="header" href="#running-ethrex-in-aligned-mode">Running Ethrex in Aligned Mode</a></h1>
 <p>This document explains how to run an Ethrex L2 node in <strong>Aligned mode</strong> and highlights the key differences in component behavior compared to the default mode.</p>
-<h2 id="how-to-run"><a class="header" href="#how-to-run">How to Run</a></h2>
+<ul>
+<li>Check <a href="l2/architecture/aligned_mode.html#how-to-run-local-devnet">How to Run (local devnet)</a> for a development or testing.</li>
+<li>Check <a href="l2/architecture/aligned_mode.html#how-to-run-testnet">How to Run (testnet)</a> for a prod-like environment.</li>
+</ul>
+<h2 id="how-to-run-testnet"><a class="header" href="#how-to-run-testnet">How to run (testnet)</a></h2>
 <div class="mdbook-alerts mdbook-alerts-important">
 <p class="mdbook-alerts-title">
   <span class="mdbook-alerts-icon"></span>
@@ -3142,10 +3222,10 @@ These proofs allow verifying that a value is included (or its key doesn't exist)
 </p>
 <p>For this guide we assumed that there is an L1 running with all Aligned environment set.</p>
 </div>
-<h3 id="1-generate-the-sp1-elf-program-and-verification-key"><a class="header" href="#1-generate-the-sp1-elf-program-and-verification-key">1. Generate the SP1 ELF Program and Verification Key</a></h3>
+<h3 id="1-generate-the-prover-elfvk"><a class="header" href="#1-generate-the-prover-elfvk">1. Generate the prover ELF/VK</a></h3>
 <p>Run:</p>
 <pre><code class="language-bash">cd ethrex/crates/l2
-SP1_PROVER=cuda make build-prover PROVER=sp1 PROVER_CLIENT_ALIGNED=true
+make build-prover-&lt;sp1/risc0&gt; # optional: GPU=true
 </code></pre>
 <p>This will generate the SP1 ELF program and verification key under:</p>
 <ul>
@@ -3155,35 +3235,33 @@ SP1_PROVER=cuda make build-prover PROVER=sp1 PROVER_CLIENT_ALIGNED=true
 <h3 id="2-deploying-l1-contracts"><a class="header" href="#2-deploying-l1-contracts">2. Deploying L1 Contracts</a></h3>
 <p>In a console with <code>ethrex/crates/l2</code> as the current directory, run the following command:</p>
 <pre><code class="language-bash">COMPILE_CONTRACTS=true \
-cargo run --release --bin ethrex_l2_l1_deployer --manifest-path contracts/Cargo.toml -- \
-	--eth-rpc-url &lt;L1_RPC_URL&gt; \
-	--private-key &lt;L1_PRIVATE_KEY&gt; \
-	--genesis-l1-path &lt;GENESIS_L1_PATH&gt; \
-	--genesis-l2-path &lt;GENESIS_L2_PATH&gt; \
-	--contracts-path contracts \
-	--sp1.verifier-address 0x00000000000000000000000000000000000000aa \
-	--risc0.verifier-address 0x00000000000000000000000000000000000000aa \
-	--tdx.verifier-address 0x00000000000000000000000000000000000000aa \
-    --aligned.aggregator-address &lt;ALIGNED_PROOF_AGGREGATOR_SERVICE_ADDRESS&gt; \
-    --bridge-owner &lt;ADDRESS&gt; \
-    --on-chain-proposer-owner &lt;ADDRESS&gt; \
-    --private-keys-file-path &lt;PRIVATE_KEYS_FILE_PATH&gt; \
-    --sequencer-registry-owner &lt;ADDRESS&gt; \
-    --sp1-vk-path &lt;SP1_VERIFICATION_KEY_PATH&gt;
+ETHREX_L2_ALIGNED=true \
+ETHREX_DEPLOYER_ALIGNED_AGGREGATOR_ADDRESS=&lt;ALIGNED_AGGREGATOR_ADDRESS&gt; \
+ETHREX_L2_SP1=true \
+ETHREX_DEPLOYER_RANDOMIZE_CONTRACT_DEPLOYMENT=true \
+cargo run --release --features l2,l2-sql --manifest-path "../../Cargo.toml" -- l2 deploy \
+        --eth-rpc-url &lt;ETH_RPC_URL&gt; \
+        --private-key &lt;YOUR_PRIVATE_KEY&gt; \
+        --on-chain-proposer-owner &lt;ON_CHAIN_PROPOSER_OWNER&gt;  \
+        --bridge-owner &lt;ON_CHAIN_PROPOSER_OWNER&gt;  \
+        --genesis-l2-path "../../fixtures/genesis/l2.json" \
+        --proof-sender.l1-address &lt;PROOF_SENDER_L1_ADDRESS&gt;
 </code></pre>
 <div class="mdbook-alerts mdbook-alerts-note">
 <p class="mdbook-alerts-title">
   <span class="mdbook-alerts-icon"></span>
   note
 </p>
-<p>This command requires the COMPILE_CONTRACTS env variable to be set, as the deployer needs the SDK to embed the proxy bytecode.<br />
-In this step we are initiallizing the <code>OnChainProposer</code> contract with the <code>ALIGNED_PROOF_AGGREGATOR_SERVICE_ADDRESS</code> and skipping the rest of verifiers.<br />
-Save the addresses of the deployed proxy contracts, as you will need them to run the L2 node.</p>
+<p>This command requires the COMPILE_CONTRACTS env variable to be set, as the deployer needs the SDK to embed the proxy bytecode.
+In this step we are initiallizing the <code>OnChainProposer</code> contract with the <code>ALIGNED_PROOF_AGGREGATOR_SERVICE_ADDRESS</code> and skipping the rest of verifiers, you can find the address for the aligned aggegator service <a href="https://docs.alignedlayer.com/guides/7_contract_addresses">here</a>
+Save the addresses of the deployed proxy contracts, as you will need them to run the L2 node.
+Both the private key and the addresses for the on chain proposer, bridge and proof sender should have funds.</p>
 </div>
 <h3 id="3-deposit-funds-to-the-alignedbatcherpaymentservice-contract-from-the-proof-sender"><a class="header" href="#3-deposit-funds-to-the-alignedbatcherpaymentservice-contract-from-the-proof-sender">3. Deposit funds to the <code>AlignedBatcherPaymentService</code> contract from the proof sender</a></h3>
-<pre><code class="language-bash">aligned \
+<pre><code class="language-bash">aligned deposit-to-batcher \
 --network &lt;NETWORK&gt; \
 --private_key &lt;PROOF_SENDER_PRIVATE_KEY&gt; \
+--rpc_url &lt;RPC_URL&gt; \
 --amount &lt;DEPOSIT_AMOUNT&gt;
 </code></pre>
 <div class="mdbook-alerts mdbook-alerts-important">
@@ -3195,46 +3273,51 @@ Save the addresses of the deployed proxy contracts, as you will need them to run
 </div>
 <h3 id="4-running-a-node"><a class="header" href="#4-running-a-node">4. Running a node</a></h3>
 <p>In a console with <code>ethrex/crates/l2</code> as the current directory, run the following command:</p>
-<pre><code class="language-bash">cargo run --release --manifest-path ../../Cargo.toml --bin ethrex --features "l2" -- \
+<pre><code class="language-bash">cargo run --release --manifest-path ../../Cargo.toml --bin ethrex --features "l2,sp1" -- \
 	l2 \
-	--watcher.block-delay &lt;WATCHER_BLOCK_DELAY&gt; \
-	--network &lt;L2_GENESIS_FILE_PATH&gt; \
-	--http.port &lt;L2_PORT&gt; \
-	--http.addr &lt;L2_RPC_ADDRESS&gt; \
-	--datadir &lt;ethrex_L2_DEV_DB&gt; \
+	--watcher.block-delay 0 \
+	--network "../../fixtures/genesis/l2.json" \
 	--l1.bridge-address &lt;BRIDGE_ADDRESS&gt; \
 	--l1.on-chain-proposer-address &lt;ON_CHAIN_PROPOSER_ADDRESS&gt; \
-	--eth.rpc-url &lt;L1_RPC_URL&gt; \
-	--block-producer.coinbase-address &lt;BLOCK_PRODUCER_COINBASE_ADDRESS&gt; \
-	--committer.l1-private-key &lt;COMMITTER_PRIVATE_KEY&gt; \
-	--proof-coordinator.l1-private-key &lt;PROOF_COORDINATOR_PRIVATE_KEY&gt; \
-	--proof-coordinator.addr &lt;PROOF_COORDINATOR_ADDRESS&gt; \
+	--eth.rpc-url &lt;ETH_RPC_URL&gt; \
 	--aligned \
-    --aligned-verifier-interval-ms &lt;ETHREX_ALIGNED_VERIFIER_INTERVAL_MS&gt; \
-    --beacon_url &lt;ETHREX_ALIGNED_BEACON_CLIENT_URL&gt; \
-    --aligned-network &lt;ETHREX_ALIGNED_NETWORK&gt; \
-    --fee-estimate &lt;ETHREX_ALIGNED_FEE_ESTIMATE&gt; \
-    --aligned-sp1-elf-path &lt;ETHREX_ALIGNED_SP1_ELF_PATH&gt;
+    --aligned-network &lt;ALIGNED_NETWORK&gt;  \
+    --block-producer.coinbase-address &lt;COINBASE_ADDRESS&gt;  \
+    --committer.l1-private-key &lt;COMMITER_PRIVATE_KEY&gt;  \
+    --proof-coordinator.l1-private-key &lt;PROOF_COORDINATOR_PRIVATE_KEY&gt;  \
+    --aligned.beacon-url &lt;ALIGNED_BEACON_URL&gt; \
+	--datadir ethrex_l2 \
+    --no-monitor
 </code></pre>
+<p>Both commiter and proof coordinator should have funds.</p>
 <p>Aligned params explanation:</p>
 <ul>
 <li><code>--aligned</code>: Enables aligned mode, enforcing all required parameters.</li>
-<li><code>ETHREX_ALIGNED_VERIFIER_INTERVAL_MS</code>: Interval in millisecs, that the <code>proof_verifier</code> will sleep between each proof aggregation check.</li>
-<li><code>ETHREX_ALIGNED_BEACON_CLIENT_URL</code>: URL of the beacon client used by the Aligned SDK to verify proof aggregations.</li>
-<li><code>ETHREX_ALIGNED_SP1_ELF_PATH</code>: Path to the SP1 ELF program. This is the same file used for SP1 verification outside of Aligned mode.</li>
-<li><code>ETHREX_ALIGNED_NETWORK</code> and <code>ETHREX_ALIGNED_FEE_ESTIMATE</code>: Parameters used by the <a href="https://docs.alignedlayer.com/guides/1.2_sdk_api_reference">Aligned SDK</a>.</li>
+<li><code>--aligned.beacon-url</code>: URL of the beacon client used by the Aligned SDK to verify proof aggregations, it has to support <code>/eth/v1/beacon/blobs</code></li>
+<li><code>--aligned-network</code>: Parameter used by the <a href="https://docs.alignedlayer.com/guides/1.2_sdk_api_reference">Aligned SDK</a>.</li>
 </ul>
+<p>If you can't find a beacon client URL which supports that endpoint, you can run your own with lighthouse and ethrex:</p>
+<p>Create secrets directory and jwt secret</p>
+<pre><code class="language-bash">mkdir -p ethereum/secrets/
+cd ethereum/
+openssl rand -hex 32 | tr -d "\n" | tee ./secrets/jwt.hex
+</code></pre>
+<pre><code class="language-bash">lighthouse bn --network &lt;NETWORK&gt; --execution-endpoint http://localhost:8551 --execution-jwt &lt;PATH_TO_SECRET&gt; --checkpoint-sync-url &lt;CHECKPOINT_URL&gt; --http --purge-db-force --supernode
+</code></pre>
+<pre><code class="language-bash">cargo run --release --manifest-path ../../Cargo.toml --bin ethrex -- --authrpc.jwtsecret &lt;PATH_TO_SECRET&gt; --network &lt;NETWORK&gt;
+</code></pre>
 <h3 id="4-running-the-prover"><a class="header" href="#4-running-the-prover">4. Running the Prover</a></h3>
 <p>In a console with <code>ethrex/crates/l2</code> as the current directory, run the following command:</p>
-<pre><code class="language-bash">SP1_PROVER=cuda make init-prover PROVER=sp1 PROVER_CLIENT_ALIGNED=true
+<pre><code class="language-bash">make init-prover-&lt;sp1/risc0&gt; GPU=true # The GPU parameter is optional
 </code></pre>
-<h2 id="how-to-run-using-an-aligned-dev-environment"><a class="header" href="#how-to-run-using-an-aligned-dev-environment">How to Run Using an Aligned Dev Environment</a></h2>
+<p>Then you should wait until aligned aggregates your proof</p>
+<h2 id="how-to-run-local-devnet"><a class="header" href="#how-to-run-local-devnet">How to run (local devnet)</a></h2>
 <div class="mdbook-alerts mdbook-alerts-important">
 <p class="mdbook-alerts-title">
   <span class="mdbook-alerts-icon"></span>
   important
 </p>
-<p>This guide asumes you have already generated the SP1 ELF Program and Verification Key. See: <a href="l2/architecture/aligned_mode.html#1-generate-the-sp1-elf-program-and-verification-key">Generate the SP1 ELF Program and Verification Key</a></p>
+<p>This guide assumes you have already generated the prover ELF/VK. See: <a href="l2/architecture/aligned_mode.html#1-generate-the-prover-elfvk">Generate the prover ELF/VK</a></p>
 </div>
 <h3 id="set-up-the-aligned-environment"><a class="header" href="#set-up-the-aligned-environment">Set Up the Aligned Environment</a></h3>
 <ol>
@@ -3242,7 +3325,7 @@ Save the addresses of the deployed proxy contracts, as you will need them to run
 </ol>
 <pre><code class="language-bash">git clone git@github.com:yetanotherco/aligned_layer.git
 cd aligned_layer
-git checkout tags/v0.16.1
+git checkout tags/v0.19.1
 </code></pre>
 <ol start="2">
 <li>Edit the <code>aligned_layer/network_params.rs</code> file to send some funds to the <code>committer</code> and <code>integration_test</code> addresses:</li>
@@ -3261,17 +3344,22 @@ git checkout tags/v0.16.1
 <pre><code># Number of seconds per slot on the Beacon chain
   seconds_per_slot: 4
 </code></pre>
+<p>Change <code>ethereum-genesis-generator</code> to 5.0.8</p>
+<pre><code>ethereum_genesis_generator_params:
+  # The image to use for ethereum genesis generator
+  image: ethpandaops/ethereum-genesis-generator:5.0.8
+</code></pre>
 <ol start="3">
 <li>Make sure you have the latest version of <a href="https://github.com/kurtosis-tech/kurtosis">kurtosis</a> installed and start the ethereum-package:</li>
 </ol>
 <pre><code>cd aligned_layer
 make ethereum_package_start
 </code></pre>
-<p>To stop it run <code>make ethereum_package_rm</code></p>
+<p>If you need to stop it run <code>make ethereum_package_rm</code></p>
 <ol start="4">
 <li>Start the batcher:</li>
 </ol>
-<p>First, increase the <code>max_proof_size</code> in <code>aligned_layer/config-files/config-batcher-ethereum-package.yaml</code> <code>max_proof_size: 41943040</code> for example.</p>
+<p>First, increase the <code>max_proof_size</code> in <code>aligned_layer/config-files/config-batcher-ethereum-package.yaml</code> <code>max_proof_size: 104857600 # 100 MiB</code> for example.</p>
 <pre><code>cd aligned_layer
 make batcher_start_ethereum_package
 </code></pre>
@@ -3293,25 +3381,17 @@ let ws_stream_future =
 </code></pre>
 <h3 id="initialize-l2-node"><a class="header" href="#initialize-l2-node">Initialize L2 node</a></h3>
 <ol>
-<li>In another terminal, let's deploy the L1 contracts specifying the <code>AlignedProofAggregatorService</code> contract address:</li>
+<li>In another terminal let's deploy the L1 contracts, specifying the <code>AlignedProofAggregatorService</code> contract address, and adding the required prover types (Risc0 or SP1):</li>
 </ol>
-<pre><code class="language-bash">cd ethrex/crates/l2
+<pre><code>cd ethrex/crates/l2
 COMPILE_CONTRACTS=true \
-cargo run --release --bin ethrex_l2_l1_deployer --manifest-path contracts/Cargo.toml -- \
-	--eth-rpc-url http://localhost:8545 \
-	--private-key 0x385c546456b6a603a1cfcaa9ec9494ba4832da08dd6bcf4de9a71e4a01b74924 \
-	--contracts-path contracts \
-	--risc0.verifier-address 0x00000000000000000000000000000000000000aa \
-	--sp1.verifier-address 0x00000000000000000000000000000000000000aa \
-	--tdx.verifier-address 0x00000000000000000000000000000000000000aa \
-	--aligned.aggregator-address 0xFD471836031dc5108809D173A067e8486B9047A3 \
-	--on-chain-proposer-owner 0x4417092b70a3e5f10dc504d0947dd256b965fc62 \
-	--bridge-owner 0x4417092b70a3e5f10dc504d0947dd256b965fc62 \
-	--deposit-rich \
-	--private-keys-file-path ../../fixtures/keys/private_keys_l1.txt \
-	--genesis-l1-path ../../fixtures/genesis/l1-dev.json \
-	--genesis-l2-path ../../fixtures/genesis/l2.json
+ETHREX_L2_ALIGNED=true \
+ETHREX_DEPLOYER_ALIGNED_AGGREGATOR_ADDRESS=0xcbEAF3BDe82155F56486Fb5a1072cb8baAf547cc \
+ETHREX_L2_SP1=true \
+ETHREX_L2_RISC0=true \
+make deploy-l1
 </code></pre>
+<p>Both <code>ETHREX_L2_SP1</code> and <code>ETHREX_L2_RISC0</code> are optional</p>
 <div class="mdbook-alerts mdbook-alerts-note">
 <p class="mdbook-alerts-title">
   <span class="mdbook-alerts-icon"></span>
@@ -3320,13 +3400,14 @@ cargo run --release --bin ethrex_l2_l1_deployer --manifest-path contracts/Cargo.
 <p>This command requires the COMPILE_CONTRACTS env variable to be set, as the deployer needs the SDK to embed the proxy bytecode.</p>
 </div>
 <p>You will see that some deposits fail with the following error:</p>
-<pre><code>2025-06-18T19:19:24.066126Z  WARN ethrex_l2_l1_deployer: Failed to make deposits: Deployer EthClient error: eth_estimateGas request error: execution reverted: CommonBridge: amount to deposit is zero: CommonBridge: amount to deposit is zero
+<pre><code>2025-10-13T19:44:51.600047Z ERROR ethrex::l2::deployer: Failed to deposit address=0x0002869e27c6faee08cca6b765a726e7a076ee0f value_to_deposit=0
+2025-10-13T19:44:51.600114Z  WARN ethrex::l2::deployer: Failed to make deposits: Deployer EthClient error: eth_sendRawTransaction request error: insufficient funds for gas * price + value: have 0 want 249957710190063
 </code></pre>
 <p>This is because not all the accounts are pre-funded from the genesis.</p>
 <ol start="2">
 <li>Send some funds to the Aligned batcher payment service contract from the proof sender:</li>
 </ol>
-<pre><code>cd aligned_layer/batcher/aligned
+<pre><code>cd aligned_layer/crates/cli
 cargo run deposit-to-batcher \
 --network devnet \
 --private_key 0x39725efee3fb28614de3bacaffe4cc4bd8c436257e2c8bb887c4b5c4be45e76d \
@@ -3336,32 +3417,31 @@ cargo run deposit-to-batcher \
 <li>Start our l2 node:</li>
 </ol>
 <pre><code>cd ethrex/crates/l2
-cargo run --release --manifest-path ../../Cargo.toml --bin ethrex --features "l2" -- l2 --watcher.block-delay 0 --network ../../fixtures/genesis/l2.json --http.port 1729 --http.addr 0.0.0.0 --datadir dev_ethrex_l2 --l1.bridge-address &lt;BRIDGE_ADDRESS&gt; --l1.on-chain-proposer-address &lt;ON_CHAIN_PROPOSER_ADDRESS&gt; --eth.rpc-url http://localhost:8545 --block-producer.coinbase-address 0x0007a881CD95B1484fca47615B64803dad620C8d --committer.l1-private-key 0x385c546456b6a603a1cfcaa9ec9494ba4832da08dd6bcf4de9a71e4a01b74924 --proof-coordinator.l1-private-key 0x39725efee3fb28614de3bacaffe4cc4bd8c436257e2c8bb887c4b5c4be45e76d --proof-coordinator.addr 127.0.0.1 --aligned --aligned.beacon-url http://127.0.0.1:58801 --aligned-network devnet --aligned-sp1-elf-path prover/src/guest_program/src/sp1/out/riscv32im-succinct-zkvm-elf
+ETHREX_ALIGNED_MODE=true \
+ETHREX_ALIGNED_BEACON_URL=http://127.0.0.1:58801 \
+ETHREX_ALIGNED_NETWORK=devnet \
+ETHREX_PROOF_COORDINATOR_DEV_MODE=false \
+SP1=true \
+RISC0=true \
+make init-l2
 </code></pre>
-<div class="mdbook-alerts mdbook-alerts-important">
-<p class="mdbook-alerts-title">
-  <span class="mdbook-alerts-icon"></span>
-  important
-</p>
-<p>Set <code>BRIDGE_ADDRESS</code> and <code>ON_CHAIN_PROPOSER_ADDRESS</code> with the values printed in step 1.</p>
-</div>
 <p>Suggestion:
 When running the integration test, consider increasing the <code>--committer.commit-time</code> to 2 minutes. This helps avoid having to aggregate the proofs twice. You can do this by adding the following flag to the <code>init-l2-no-metrics</code> target:</p>
 <pre><code>--committer.commit-time 120000
 </code></pre>
 <ol start="4">
-<li>Start prover:</li>
+<li>Start prover(s) in different terminals:</li>
 </ol>
-<pre><code>cd ethrex/crates/l2
-SP1_PROVER=cuda make init-prover PROVER=sp1 PROVER_CLIENT_ALIGNED=true
+<pre><code class="language-bash">cd ethrex/crates/l2
+make init-prover-&lt;sp1/risc0&gt; GPU=true # The GPU flag is optional
 </code></pre>
 <h3 id="aggregate-proofs"><a class="header" href="#aggregate-proofs">Aggregate proofs:</a></h3>
-<p>After some time, you will see that the <code>l1_proof_verifier</code> is waiting for Aligned to aggregate the proofs:</p>
-<pre><code>2025-06-18T22:03:53.470356Z  INFO ethrex_l2::sequencer::l1_proof_verifier: Batch 1 has not yet been aggregated by Aligned. Waiting for 5 seconds
-</code></pre>
-<p>You can aggregate them by running:</p>
-<pre><code>cd aligned_layer
-make start_proof_aggregator AGGREGATOR=sp1
+<p>After some time, you will see that the <code>l1_proof_verifier</code> is waiting for Aligned to aggregate the proofs. You can trigger an aggregation (for either sp1 or risc0 proofs) by running:</p>
+<pre><code class="language-bash">cd aligned_layer
+make proof_aggregator_start AGGREGATOR=&lt;sp1/risc0&gt;
+
+# or with gpu acceleration
+make proof_aggregator_start_gpu AGGREGATOR=&lt;sp1/risc0&gt;
 </code></pre>
 <p>If successful, the <code>l1_proof_verifier</code> will print the following logs:</p>
 <pre><code>INFO ethrex_l2::sequencer::l1_proof_verifier: Proof for batch 1 aggregated by Aligned with commitment 0xa9a0da5a70098b00f97d96cee43867c7aa8f5812ca5388da7378454580af2fb7 and Merkle root 0xa9a0da5a70098b00f97d96cee43867c7aa8f5812ca5388da7378454580af2fb7
@@ -3503,11 +3583,11 @@ This is analogous to <a href="https://uapi-group.org/specifications/specs/linux_
 <h3 id="imagenix"><a class="header" href="#imagenix">image.nix</a></h3>
 <p>Exports an image that uses <a href="https://uapi-group.org/specifications/specs/unified_kernel_image/">UKI</a> and <a href="https://source.android.com/docs/security/features/verifiedboot/dm-verity?hl=en">dm-verity</a> to generate an image where changing any component changes the hash of the bootloader (the UKI image), which is measured by the BIOS.</p>
 <h2 id="running"><a class="header" href="#running">Running</a></h2>
-<p>You can enable the prover by setting <code>ETHREX_DEPLOYER_TDX_DEPLOY_VERIFIER=true</code>.</p>
+<p>You can enable the prover by setting <code>ETHREX_L2_TDX=true</code>.</p>
 <p>For development purposes, you can use the flag <code>ETHREX_TDX_DEV_MODE=true</code> to disable quote verification. This allows you to run the quote generator even without having TDX-capable hardware.</p>
 <p>Ensure the proof coordinator is reachable at 172.17.0.1. You can bring up the network by first starting the L2 components:</p>
 <pre><code class="language-sh">// cd crates/l2
-make init ETHREX_DEPLOYER_TDX_DEPLOY_VERIFIER=true PROOF_COORDINATOR_ADDRESS=0.0.0.0
+make init ETHREX_L2_TDX=true PROOF_COORDINATOR_ADDRESS=0.0.0.0
 </code></pre>
 <p>And in another terminal, running the VM:</p>
 <pre><code class="language-sh">// cd crates/l2
@@ -4935,38 +5015,142 @@ To do this, they compute a merkle proof for the included batch and call the L1 <
 </style>
 <h1 id="ethrex-l2-contracts"><a class="header" href="#ethrex-l2-contracts">Ethrex L2 contracts</a></h1>
 <p>There are two L1 contracts: OnChainProposer and CommonBridge. Both contracts are deployed using UUPS proxies, so they are upgradeables.</p>
-<h2 id="l1-side"><a class="header" href="#l1-side">L1 side</a></h2>
+<h2 id="l1-contracts"><a class="header" href="#l1-contracts">L1 Contracts</a></h2>
 <h3 id="commonbridge"><a class="header" href="#commonbridge"><code>CommonBridge</code></a></h3>
-<p>Allows L1&lt;-&gt;L2 communication from L1. It both sends messages from L1 to L2 and receives messages from L2.</p>
-<h4 id="deposit-functions"><a class="header" href="#deposit-functions">Deposit Functions</a></h4>
-<h5 id="simple-deposits"><a class="header" href="#simple-deposits">Simple Deposits</a></h5>
+<p>The <code>CommonBridge</code> is an upgradeable smart contract that facilitates cross-chain transfers between L1 and L2.</p>
+<h4 id="state-variables"><a class="header" href="#state-variables"><strong>State Variables</strong></a></h4>
 <ul>
-<li>Send ETH directly to the contract address using a standard transfer</li>
-<li>The contract's <code>receive()</code> function automatically forwards funds to your identical address on L2</li>
-<li>No additional parameters needed</li>
+<li><strong><code>pendingTxHashes</code></strong>: Array storing hashed pending privileged transactions</li>
+<li><strong><code>batchWithdrawalLogsMerkleRoots</code></strong>: Mapping of L2 batch numbers to merkle roots of withdrawal logs</li>
+<li><strong><code>deposits</code></strong>: Tracks how much of each L1 token was deposited for each L2 token (L1 → L2 → amount)</li>
+<li><strong><code>claimedWithdrawalIDs</code></strong>: Tracks which withdrawals have been claimed by message ID</li>
+<li><strong><code>ON_CHAIN_PROPOSER</code></strong>: Address of the contract that can commit and verify batches</li>
+<li><strong><code>L2_BRIDGE_ADDRESS</code></strong>: Constant address (0xffff) representing the L2 bridge</li>
 </ul>
-<h5 id="deposits-with-contract-interaction"><a class="header" href="#deposits-with-contract-interaction">Deposits with Contract Interaction</a></h5>
-<pre><code class="language-solidity">function deposit(DepositValues calldata depositValues) public payable
+<h4 id="core-functionality"><a class="header" href="#core-functionality"><strong>Core Functionality</strong></a></h4>
+<ol>
+<li>
+<p><strong>Deposits (L1 → L2)</strong></p>
+<ul>
+<li><strong><code>deposit()</code></strong>: Allows users to deposit ETH to L2</li>
+<li><strong><code>depositERC20()</code></strong>: Allows users to deposit ERC20 tokens to L2</li>
+<li><strong><code>receive()</code></strong>: Fallback function for ETH deposits, forwarding to the sender's address on the L2</li>
+<li><strong><code>sendToL2()</code></strong>: Sends arbitrary data to L2 via privileged transaction</li>
+</ul>
+<p>Internally the deposit functions will use the <code>SendValues</code> struct defined as:</p>
+<pre><code class="language-solidity">struct SendValues {
+    address to; // Target address on L2
+    uint256 gasLimit; // Maximum gas for L2 execution
+    uint256 value; // The value of the transaction
+    bytes data; // Calldata to execute on the target L2 contract
+}
 </code></pre>
-<p>Parameters:</p>
+<p>This expresivity allows for arbitrary cross-chain actions, e.g., depositing ETH then interacting with an L2 contract.</p>
+</li>
+<li>
+<p><strong>Withdrawals (L2 → L1)</strong></p>
 <ul>
-<li><code>to</code>: Target address on L2</li>
-<li><code>recipient</code>: Address that will receive the ETH on L2 (can differ from sender)</li>
-<li><code>gasLimit</code>: Maximum gas for L2 execution</li>
-<li><code>data</code>: Calldata to execute on the target L2 contract</li>
+<li><strong><code>claimWithdrawal()</code></strong>: Withdraw ETH from <code>CommonBridge</code> via Merkle proof</li>
+<li><strong><code>claimWithdrawalERC20()</code></strong>: Withdraw ERC20 tokens from <code>CommonBridge</code> via Merkle proof</li>
+<li><strong><code>publishWithdrawals()</code></strong>: Priviledged function to add merkle root of L2 withdrawal logs to <code>batchWithdrawalLogsMerkleRoots</code> mapping to make them claimable</li>
 </ul>
-<p>This method enables atomic operations like:</p>
+</li>
+<li>
+<p><strong>Transaction Management</strong></p>
 <ul>
-<li>Depositing ETH while simultaneously interacting with L2 contracts</li>
-<li>Funding another user's L2 account</li>
+<li><strong><code>getPendingTransactionHashes()</code></strong>: Returns pending privileged transaction hashes</li>
+<li><strong><code>removePendingTransactionHashes()</code></strong>: Removes processed privileged transactions (only callable by OnChainProposer)</li>
+<li><strong><code>getPendingTransactionsVersionedHash()</code></strong>: Returns a versioned hash of the first <code>number</code> of pending privileged transactions</li>
 </ul>
+</li>
+</ol>
 <h3 id="onchainoperator"><a class="header" href="#onchainoperator"><code>OnChainOperator</code></a></h3>
-<p>Ensures the advancement of the L2. It is used by the operator to commit batches of blocks and verify batch proofs.</p>
-<h3 id="verifier"><a class="header" href="#verifier"><code>Verifier</code></a></h3>
-<p>TODO</p>
-<h2 id="l2-side"><a class="header" href="#l2-side">L2 side</a></h2>
-<h3 id="l1messagesender"><a class="header" href="#l1messagesender"><code>L1MessageSender</code></a></h3>
-<p>TODO</p>
+<p>The <code>OnChainProposer</code> is an upgradeable smart contract that ensures the advancement of the L2. It's used by sequencers to commit batches of L2 blocks and verify their proofs.</p>
+<h4 id="state-variables-1"><a class="header" href="#state-variables-1"><strong>State Variables</strong></a></h4>
+<ul>
+<li><strong><code>batchCommitments</code></strong>: Mapping of batch numbers to submitted <code>BatchCommitmentInfo</code> structs</li>
+<li><strong><code>lastVerifiedBatch</code></strong>: The latest verified batch number (all batches ≤ this are considered verified)</li>
+<li><strong><code>lastCommittedBatch</code></strong>: The latest committed batch number (all batches ≤ this are considered committed)</li>
+<li><strong><code>authorizedSequencerAddresses</code></strong>: Mapping of authorized sequencer addresses that can commit and verify batches</li>
+</ul>
+<h4 id="core-functionality-1"><a class="header" href="#core-functionality-1"><strong>Core Functionality</strong></a></h4>
+<ol>
+<li>
+<p><strong>Batch Commitment</strong></p>
+<ul>
+<li><strong><code>commitBatch()</code></strong>: Commits a batch of L2 blocks by storing its commitment data and publishing withdrawals</li>
+<li><strong><code>revertBatch()</code></strong>: Removes unverified batches (only callable when paused)</li>
+</ul>
+</li>
+<li>
+<p><strong>Proof Verification</strong></p>
+<ul>
+<li><strong><code>verifyBatch()</code></strong>: Verifies a single batch using RISC0, SP1, or TDX proofs</li>
+<li><strong><code>verifyBatchesAligned()</code></strong>: Verifies multiple batches in sequence using aligned proofs with Merkle verification</li>
+</ul>
+</li>
+<li>
+<p><strong>State Validation</strong></p>
+<ul>
+<li><strong><code>_verifyPublicData()</code></strong>: Internal function used during <code>verifyBatch()</code> or <code>verifyBatchesAligned()</code> that validates public proof inputs match previous data from <code>commitBatch()</code></li>
+</ul>
+</li>
+</ol>
+<h2 id="l2-contracts-1"><a class="header" href="#l2-contracts-1">L2 Contracts</a></h2>
+<h3 id="commonbridgel2"><a class="header" href="#commonbridgel2"><code>CommonBridgeL2</code></a></h3>
+<p>The <code>CommonBridgeL2</code> is an L2 smart contract that facilitates cross-chain transfers between L1 and L2.</p>
+<h4 id="state-variables-2"><a class="header" href="#state-variables-2"><strong>State Variables</strong></a></h4>
+<ul>
+<li><strong><code>L1_MESSENGER</code></strong>: Constant address (<code>0x000000000000000000000000000000000000FFFE</code>) representing the L2-to-L1 messenger contract</li>
+<li><strong><code>BURN_ADDRESS</code></strong>: Constant address (<code>0x0000000000000000000000000000000000000000</code>) used to burn ETH during withdrawals</li>
+<li><strong><code>NATIVE_TOKEN_L2</code></strong>: Constant address (<code>0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE</code>) representing the native token on the L2</li>
+</ul>
+<h4 id="core-functionality-2"><a class="header" href="#core-functionality-2"><strong>Core Functionality</strong></a></h4>
+<ol>
+<li>
+<p><strong>ETH Operations</strong></p>
+<ul>
+<li><strong><code>withdraw()</code></strong>: Initiates ETH withdrawal to L1 by burning ETH on L2 and sending a message to L1</li>
+<li><strong><code>mintETH()</code></strong>: Transfers ETH to a recipient (called by privileged L1 bridge transactions). If it fails a withdrawal is queued.</li>
+</ul>
+</li>
+<li>
+<p><strong>ERC20 Token Operations</strong></p>
+<ul>
+<li><strong><code>mintERC20()</code></strong>: Attempts to mint ERC20 tokens on L2 (only callable by the bridge itself via privileged transactions). If it fails a withdrawal is queued.</li>
+<li><strong><code>tryMintERC20()</code></strong>: Internal function that validates token L1 address and performs a cross-chain mint</li>
+<li><strong><code>withdrawERC20()</code></strong>: Initiates ERC20 token withdrawal to L1 by burning tokens on L2 and sending a message to L1</li>
+</ul>
+</li>
+<li>
+<p><strong>Cross-Chain Messaging</strong></p>
+<ul>
+<li><strong><code>_withdraw()</code></strong>: Private function that sends withdrawal messages to L1 via the L2-to-L1 messenger</li>
+<li>Uses keccak256 hashing to encode withdrawal data for L1 processing</li>
+</ul>
+</li>
+<li>
+<p><strong>Access Control</strong></p>
+<ul>
+<li><strong><code>onlySelf</code></strong>: Modifier ensuring only the bridge contract itself can call privileged functions</li>
+<li>Validates that privileged operations (like minting) are only performed by the bridge</li>
+</ul>
+</li>
+</ol>
+<h3 id="l2tol1messenger"><a class="header" href="#l2tol1messenger"><code>L2ToL1Messenger</code></a></h3>
+<p>The <code>L2ToL1Messenger</code> is a simple L2 smart contract that enables communication from L2 to L1 by emitting the data as <code>L1Message</code> events for sequencers to pick up.</p>
+<h4 id="state-variables-3"><a class="header" href="#state-variables-3"><strong>State Variables</strong></a></h4>
+<ul>
+<li><strong><code>lastMessageId</code></strong>: Counter that tracks the ID of the last emitted message (incremented before each message is sent)</li>
+</ul>
+<h4 id="core-functionality-3"><a class="header" href="#core-functionality-3"><strong>Core Functionality</strong></a></h4>
+<ol>
+<li><strong>Message Sending</strong>
+<ul>
+<li><strong><code>sendMessageToL1()</code></strong>: Sends a message to L1 by emitting an <code>L1Message</code> event with the sender, data, and <code>lastMessageId</code></li>
+</ul>
+</li>
+</ol>
 <h2 id="upgrade-the-contracts"><a class="header" href="#upgrade-the-contracts">Upgrade the contracts</a></h2>
 <p>To upgrade a contract, you have to create the new contract and, as the original one, inherit from OpenZeppelin's <code>UUPSUpgradeable</code>. Make sure to implement the <code>_authorizeUpgrade</code> function and follow the <a href="https://docs.openzeppelin.com/upgrades-plugins/writing-upgradeable">proxy pattern restrictions</a>.</p>
 <p>Once you have the new contract, you need to do the following three steps:</p>
@@ -5618,6 +5802,188 @@ TODO: add updated graph with L1 block time distribution
 }
 
 </style>
+<h1 id="transaction-fees"><a class="header" href="#transaction-fees">Transaction Fees</a></h1>
+<p>This page describes the different types of transaction fees that the Ethrex L2 rollup can charge and how they can be configured.</p>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>Privileged transactions are exempt from all fees.</p>
+</div>
+<h2 id="priority-fee"><a class="header" href="#priority-fee">Priority Fee</a></h2>
+<p>The priority fee works exactly the same way as on Ethereum L1.<br />
+It is an additional tip paid by the transaction sender to incentivize the sequencer to prioritize the inclusion of their transaction.<br />
+The priority fee is always forwarded directly to the sequencer’s coinbase address.</p>
+<h2 id="base-fee"><a class="header" href="#base-fee">Base Fee</a></h2>
+<p>The base fee follows the same rules as the Ethereum L1 base fee. It adjusts dynamically depending on network congestion to ensure stable transaction pricing.<br />
+By default, base fees are burned. However, a sequencer can configure a <code>base fee vault</code> address to receive the collected base fees instead of burning them.</p>
+<pre><code class="language-sh">ethrex l2 --block-producer.base-fee-vault-address &lt;l2-base-fee-vault-address&gt;
+</code></pre>
+<div class="mdbook-alerts mdbook-alerts-caution">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  caution
+</p>
+<p>If the base fee vault and coinbase addresses are the same, its balance will change in a way that differs from the standard L1 behavior, which may break assumptions about EVM compatibility.</p>
+</div>
+<h2 id="operator-fee"><a class="header" href="#operator-fee">Operator Fee</a></h2>
+<p>The operator fee represents an additional per-gas cost charged by the sequencer to cover the operational costs of maintaining the L2 infrastructure.</p>
+<p>This fee works similarly to the base fee — it is <strong>multiplied by the gas used</strong> for each transaction.<br />
+All collected operator fees are deposited into a dedicated <code>operator fee vault</code> address.</p>
+<p>To set the operator fee amount:</p>
+<pre><code class="language-sh">ethrex l2 --block-producer.operator-fee-per-gas &lt;amount-in-wei&gt;
+</code></pre>
+<p>To set the operator fee vault address:</p>
+<pre><code class="language-sh">ethrex l2 --block-producer.operator-fee-vault-address &lt;operator-fee-vault-address&gt;
+</code></pre>
+<div class="mdbook-alerts mdbook-alerts-caution">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  caution
+</p>
+<p>If the operator fee vault and coinbase addresses are the same, its balance will change in a way that differs from the standard L1 behavior, which may break assumptions about EVM compatibility.</p>
+</div>
+<hr />
+<h2 id="fee-calculation"><a class="header" href="#fee-calculation">Fee Calculation</a></h2>
+<p>When executing a transaction, all gas-related fees are subject to the <strong><code>max_fee_per_gas</code></strong> value defined in the transaction.<br />
+This value acts as an absolute cap over the <strong>sum of all fee components</strong>.</p>
+<p>This means that the <strong>effective priority fee</strong> is capped to ensure the total does not exceed <code>max_fee_per_gas</code>.<br />
+Specifically:</p>
+<pre><code>effective_priority_fee_per_gas = min(
+    max_priority_fee_per_gas,
+    max_fee_per_gas - base_fee_per_gas - operator_fee_per_gas
+)
+</code></pre>
+<p>Then, the total fees are calculated as:</p>
+<pre><code class="language-sh">total_fees = (base_fee_per_gas + operator_fee_per_gas + priority_fee_per_gas) * gas_used
+</code></pre>
+<p>This behavior ensures that transaction senders <strong>never pay more than <code>max_fee_per_gas * gas_used</code></strong>, even when the operator fee is enabled.</p>
+<div class="mdbook-alerts mdbook-alerts-important">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  important
+</p>
+<p>The current <code>effective_gas_price</code> field in the transaction receipt <strong>does not include</strong> the operator fee component.<br />
+Therefore, <code>effective_gas_price * gas_used</code> will only reflect the <strong>base + priority</strong> portions of the total cost.</p>
+</div>
+<div class="mdbook-alerts mdbook-alerts-important">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  important
+</p>
+<p>The <code>eth_gasPrice</code> RPC endpoint has been <strong>modified</strong> to include the <code>operator_fee_per_gas</code> value when the operator fee mechanism is active.<br />
+This means that the value returned by <code>eth_gasPrice</code> corresponds to <code>base_fee_per_gas + operator_fee_per_gas + estimated_gas_tip</code>.</p>
+</div>
+<h2 id="l1-fees"><a class="header" href="#l1-fees">L1 Fees</a></h2>
+<p>L1 fees represent the cost of posting data from the L2 to the L1.<br />
+Each transaction is charged based on the amount of <strong>L1 Blob space</strong> it occupies (the size of the transaction’s <strong>stateDiff</strong>).</p>
+<p>After each transaction is executed, the sequencer calculates the <code>stateDiff</code> generated by that transaction.<br />
+The L1 fee for that transaction is computed as:</p>
+<pre><code>l1_fee = blob_base_fee_per_byte * tx_state_diff_size
+</code></pre>
+<p>An additional amount of gas (<code>l1_gas</code>) is added to the transaction execution so that:</p>
+<pre><code>l1_gas * gas_price = l1_fee
+</code></pre>
+<p>This guarantees that the total amount charged to the user never exceeds <code>gas_limit * gas_price</code>, while transparently accounting for the L1 posting cost.<br />
+Importantly, this process happens automatically — users do <strong>not</strong> need to perform any additional steps.<br />
+Calls to <code>eth_estimateGas</code> already inherit this behavior and will include the extra gas required for the L1 fee.</p>
+<p>The computed L1 fee is deducted from the sender’s balance and transferred to the <code>L1 Fee Vault</code> address.</p>
+<p>The <strong>blob base fee per byte</strong> is derived from the L1 <code>BlobBaseFee</code>.<br />
+The <code>L1Watcher</code> periodically fetches the <code>BlobBaseFee</code> from L1 (at a configured interval) and uses it to compute:</p>
+<pre><code>blob_base_fee_per_byte = (l1_fee_per_blob_gas * GAS_PER_BLOB) / SAFE_BYTES_PER_BLOB
+</code></pre>
+<p>See <a href="l2/fundamentals/./state_diffs.html">State Diffs</a> for more information about how <code>stateDiffs</code> works.</p>
+<p>L1 fee is deactivated by default. To activate it, configure the <strong>L1 fee vault address</strong>:</p>
+<pre><code class="language-sh">ethrex l2 --block-producer.l1-fee-vault-address &lt;l1-fee-vault-address&gt;
+</code></pre>
+<p>To configure the <strong>interval</strong> at which the <code>BlobBaseFee</code> is fetched from L1:</p>
+<pre><code class="language-sh">ethrex l2 --block-producer.blob-base-fee-update-interval &lt;milliseconds&gt;
+</code></pre>
+<div class="mdbook-alerts mdbook-alerts-caution">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  caution
+</p>
+<p>If the L1 fee vault and coinbase addresses are the same, its balance will change in a way that differs from the standard L1 behavior, which may break assumptions about EVM compatibility.</p>
+</div>
+<h2 id="useful-rpc-methods"><a class="header" href="#useful-rpc-methods">Useful RPC Methods</a></h2>
+<p>The following custom RPC methods are available to query fee-related parameters directly from the L2 node.<br />
+Each method accepts a single argument: the <strong><code>block_number</code></strong> to query historical or current values.</p>
+<div class="table-wrapper"><table><thead><tr><th>Method Name</th><th>Description</th><th>Example</th></tr></thead><tbody>
+<tr><td><code>ethrex_getBaseFeeVaultAddress</code></td><td>Returns the address configured to receive the <strong>base fees</strong> collected in the specified block.</td><td><code>ethrex_getBaseFeeVaultAddress {"block_number": 12345}</code></td></tr>
+<tr><td><code>ethrex_getOperatorFeeVaultAddress</code></td><td>Returns the address configured as the <strong>operator fee vault</strong> in the specified block.</td><td><code>ethrex_getOperatorFeeVaultAddress {"block_number": 12345}</code></td></tr>
+<tr><td><code>ethrex_getOperatorFee</code></td><td>Returns the <strong>operator fee per gas</strong> value active at the specified block.</td><td><code>ethrex_getOperatorFee {"block_number": 12345}</code></td></tr>
+<tr><td><code>ethrex_getL1BlobBaseFee</code></td><td>Returns the <strong>L1 blob base fee per gas</strong> fetched from L1 and used for L1 fee computation at the specified block.</td><td><code>ethrex_getL1BlobBaseFee {"block_number": 12345}</code></td></tr>
+</tbody></table>
+</div><div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
 <h1 id="developer-docs"><a class="header" href="#developer-docs">Developer docs</a></h1>
 <p>Welcome to the ethrex developer docs!</p>
 <p>This section contains documentation on the internals of the project.</p>
@@ -5708,12 +6074,12 @@ TODO: add updated graph with L1 block time distribution
 </code></pre>
 <p>the following feature can be enable with <code>--features &lt;features&gt;</code></p>
 <div class="table-wrapper"><table><thead><tr><th>Feature</th><th>Description</th></tr></thead><tbody>
-<tr><td><strong>default</strong></td><td>Enables "libmdbx", "c-kzg", "rollup_storage_sql", "dev", "metrics" features</td></tr>
+<tr><td><strong>default</strong></td><td>Enables "rocksdb", "c-kzg", "rollup_storage_sql", "dev", "metrics" features</td></tr>
 <tr><td>debug</td><td>Enables <a href="developers/../vm/levm/debug.html">debug mode</a> for LEVM</td></tr>
 <tr><td><strong>dev</strong></td><td>Makes the <a href="developers/./l1/dev-mode.html">--dev</a> flag available</td></tr>
 <tr><td><strong>metrics</strong></td><td>Enables metrics gathering for use with a monitoring stack</td></tr>
 <tr><td><strong>c-kzg</strong></td><td>Enables the c-kzg crate instead of kzg-rs</td></tr>
-<tr><td><strong>libmdbx</strong></td><td>Enables libmdbx as the database for the ethereum state</td></tr>
+<tr><td><strong>rocksdb</strong></td><td>Enables rocksdb as the database for the ethereum state</td></tr>
 <tr><td><strong>rollup_storage_sql</strong></td><td>Enables sql as the database for the L2 batch data</td></tr>
 <tr><td>sp1</td><td>Enables the sp1 backend for the L2 prover</td></tr>
 <tr><td>risc0</td><td>Enables the risc0 backend for the L2 prover</td></tr>
@@ -6037,7 +6403,7 @@ for block in parse(rlp_file) {
 <p>This is a key piece of code in <code>Blockchain.execute_block</code>:</p>
 <pre><pre class="playground"><code class="language-rust edition2024"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>let vm_db = StoreVmDatabase::new(self.storage.clone(), block.header.parent_hash);
+</span>let vm_db = StoreVmDatabase::new(self.storage.clone(), parent_header);
 let mut vm = Evm::new(vm_db);
 let execution_result = vm.execute_block(block)?;
 let account_updates = vm.get_state_transitions()?;
@@ -6557,7 +6923,7 @@ and expects a certain response. You can read more about it <a href="https://gith
 # If you need to set GOROOT please follow: https://github.com/asdf-community/asdf-golang?tab=readme-ov-file#goroot
 </code></pre>
 <p>And uncommenting the golang line in the asdf <code>.tool-versions</code> file:</p>
-<pre><code class="language-text">rust 1.87.0
+<pre><code class="language-text">rust 1.90.0
 golang 1.23.2
 </code></pre>
 <h4 id="running-simulations"><a class="header" href="#running-simulations">Running Simulations</a></h4>
@@ -7130,8 +7496,7 @@ You can find the solidity code in the <a href="https://github.com/lambdaclass/et
 
 </style>
 <h1 id="ethrex-replay"><a class="header" href="#ethrex-replay">ethrex-replay</a></h1>
-<p>A tool for executing and proving Ethereum blocks, transactions, and L2 batches — inspired by <a href="https://github.com/lambdaclass/starknet-replay">starknet-replay</a>.
-Currently ethrex replay only works against ethrex nodes with the <code>debug_executionWitness</code> RPC endpoint.</p>
+<p>A tool for executing and proving Ethereum blocks, transactions, and L2 batches — inspired by <a href="https://github.com/lambdaclass/starknet-replay">starknet-replay</a>.</p>
 <h2 id="features"><a class="header" href="#features">Features</a></h2>
 <h3 id="l1"><a class="header" href="#l1">L1</a></h3>
 <div class="table-wrapper"><table><thead><tr><th>Feature</th><th>Description</th></tr></thead><tbody>
@@ -7152,19 +7517,18 @@ Currently ethrex replay only works against ethrex nodes with the <code>debug_exe
 </tbody></table>
 </div>
 <h2 id="supported-clients"><a class="header" href="#supported-clients">Supported Clients</a></h2>
-<blockquote>
-<p>✅: supported.
-⚠️: supported, but flaky.
-🔜: to be supported.</p>
-</blockquote>
-<div class="table-wrapper"><table><thead><tr><th>Client</th><th>Hoodi</th><th>Sepolia</th><th>Mainnet</th><th>Public ethrex L2s</th></tr></thead><tbody>
-<tr><td>ethrex</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
-<tr><td>reth</td><td>✅</td><td>✅</td><td>✅</td><td>-</td></tr>
-<tr><td>geth</td><td>✅</td><td>✅</td><td>✅</td><td>-</td></tr>
-<tr><td>Nethermind</td><td>⚠️</td><td>⚠️</td><td>⚠️</td><td>-</td></tr>
-<tr><td>erigon</td><td>🔜</td><td>🔜</td><td>🔜</td><td>-</td></tr>
+<div class="table-wrapper"><table><thead><tr><th>Client</th><th><code>ethrex-replay block</code></th><th>notes</th></tr></thead><tbody>
+<tr><td>ethrex</td><td>✅</td><td><code>debug_executionWitness</code></td></tr>
+<tr><td>reth</td><td>✅</td><td><code>debug_executionWitness</code></td></tr>
+<tr><td>geth</td><td>✅</td><td><code>eth_getProof</code></td></tr>
+<tr><td>nethermind</td><td>✅</td><td><code>eth_getProof</code></td></tr>
+<tr><td>erigon</td><td>❌</td><td>V3 supports <code>eth_getProof</code> only for latest block</td></tr>
+<tr><td>besu</td><td>❌</td><td>Doesn't return proof for non-existing accounts</td></tr>
 </tbody></table>
 </div>
+<p>We support any other client that is compliant with <code>eth_getProof</code> or <code>debug_executionWitness</code> endpoints.
+You can set the max requests per second to the RPC url with the environment variable <code>REPLAY_RPC_RPS</code>. This is particularly useful when using <code>eth_getProof</code>. Default is 10.</p>
+<p>Execution of some particular blocks with the <code>eth_getProof</code> method won't work with zkVMs. But without using these it should work for any block. Read more about this in <a href="ethrex_replay/./faq.html">FAQ</a>. Also, when running against a <strong>full node</strong> using <code>eth_getProof</code> if for some reason information retrieval were to take longer than 25 minutes it would probably fail because the node may have pruned its state (128 blocks * 12 seconds = 25,6 min), normally it doesn't take that much but be wary of that.</p>
 <h2 id="supported-zkvm-replays-execution--proving"><a class="header" href="#supported-zkvm-replays-execution--proving">Supported zkVM Replays (execution &amp; proving)</a></h2>
 <blockquote>
 <p>✅: supported.
@@ -7172,8 +7536,8 @@ Currently ethrex replay only works against ethrex nodes with the <code>debug_exe
 🔜: to be supported.</p>
 </blockquote>
 <div class="table-wrapper"><table><thead><tr><th>zkVM</th><th>Hoodi</th><th>Sepolia</th><th>Mainnet</th><th>Public ethrex L2s</th></tr></thead><tbody>
-<tr><td>RISC0</td><td>✅</td><td>✅</td><td>✅</td><td>🔜</td></tr>
-<tr><td>SP1</td><td>✅</td><td>✅</td><td>✅</td><td>🔜</td></tr>
+<tr><td>RISC0</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+<tr><td>SP1</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
 <tr><td>OpenVM</td><td>⚠️</td><td>🔜</td><td>🔜</td><td>🔜</td></tr>
 <tr><td>ZisK</td><td>🔜</td><td>🔜</td><td>⚠️</td><td>🔜</td></tr>
 <tr><td>Jolt</td><td>🔜</td><td>🔜</td><td>🔜</td><td>🔜</td></tr>
@@ -7184,13 +7548,15 @@ Currently ethrex replay only works against ethrex nodes with the <code>debug_exe
 </div>
 <h2 id="getting-started-1"><a class="header" href="#getting-started-1">Getting Started</a></h2>
 <h3 id="dependencies"><a class="header" href="#dependencies">Dependencies</a></h3>
+<p>These dependencies are optional, install them only if you want to run with the features <code>risc0</code> or <code>sp1</code> respectively.
+Make sure to use the correct versions of these.</p>
 <h4 id="risc0"><a class="header" href="#risc0"><a href="https://dev.risczero.com/api/zkvm/install">RISC0</a></a></h4>
 <pre><code class="language-sh">curl -L https://risczero.com/install | bash
 rzup install cargo-risczero 3.0.3
 rzup install risc0-groth16
 rzup install rust
 </code></pre>
-<h4 id="sp1"><a class="header" href="#sp1"><a href="https://docs.succinct.xyz/docs/sp1/introduction">SP1</a></a></h4>
+<h4 id="sp1"><a class="header" href="#sp1"><a href="https://docs.succinct.xyz/docs/sp1/getting-started/install">SP1</a></a></h4>
 <pre><code class="language-sh">curl -L https://sp1up.succinct.xyz | bash
 sp1up --version 5.0.8
 </code></pre>
@@ -7363,6 +7729,9 @@ ethrex-replay l2 transaction &lt;TX_HASH&gt; --execute --rpc-url &lt;RPC_URL&gt;
 <hr />
 <h2 id="benchmarking--profiling"><a class="header" href="#benchmarking--profiling">Benchmarking &amp; Profiling</a></h2>
 <h3 id="run-samply"><a class="header" href="#run-samply">Run Samply</a></h3>
+<p>We recommend building in <code>release-with-debug</code> mode so that the flamegraph is the most accurate.</p>
+<pre><code class="language-bash">cargo build -p ethrex-replay --profile release-with-debug --features &lt;FEATURES&gt;
+</code></pre>
 <h4 id="on-zkvms"><a class="header" href="#on-zkvms">On zkVMs</a></h4>
 <div class="mdbook-alerts mdbook-alerts-important">
 <p class="mdbook-alerts-title">
@@ -7374,12 +7743,10 @@ ethrex-replay l2 transaction &lt;TX_HASH&gt; --execute --rpc-url &lt;RPC_URL&gt;
 <li>The <code>TRACE_SAMPLE_RATE</code> environment variable controls the sampling rate (in milliseconds). Adjust it according to your needs.</li>
 </ol>
 </div>
-<pre><code>TRACE_FILE=output.json TRACE_SAMPLE_RATE=1000 ethrex-replay &lt;COMMAND&gt; [ARGS]
+<pre><code>TRACE_FILE=output.json TRACE_SAMPLE_RATE=1000 target/release-with-debug/ethrex-replay &lt;COMMAND&gt; [ARGS]
 </code></pre>
 <h4 id="execution-without-zkvms"><a class="header" href="#execution-without-zkvms">Execution without zkVMs</a></h4>
-<p>We recommend building in release-with-debug mode so that the flamegraph is the most accurate.</p>
-<pre><code class="language-bash">cargo build -p ethrex-replay --profile release-with-debug
-samply record target/release-with-debug/ethrex-replay &lt;COMMAND&gt; [ARGS]
+<pre><code class="language-bash">samply record target/release-with-debug/ethrex-replay &lt;COMMAND&gt; --no-zkvm [OTHER_ARGS]
 </code></pre>
 <h3 id="run-bytehound"><a class="header" href="#run-bytehound">Run Bytehound</a></h3>
 <div class="mdbook-alerts mdbook-alerts-important">
@@ -7404,6 +7771,7 @@ LD_PRELOAD=/path/to/bytehound/preload/target/release/libbytehound.so:/path/to/li
 <ol>
 <li>The following requires <a href="https://github.com/jemalloc/jemalloc">Jemalloc</a> and <a href="https://github.com/KDE/heaptrack">Heaptrack</a> to be installed.</li>
 <li>The <code>ethrex-replay</code> binary must be built with the <code>jemalloc</code> feature enabled.</li>
+<li>Note that Heaptrack is a <strong>Linux</strong> profiler, so it won't work natively on macOS.</li>
 </ol>
 </div>
 <pre><code>LD_PRELOAD=/path/to/libjemalloc.so heaptrack ethrex-replay &lt;COMMAND&gt; [ARGS]
@@ -7482,45 +7850,21 @@ heaptrack_print heaptrack.&lt;program&gt;.&lt;pid&gt;.gz &gt; heaptrack.stacks
 }
 
 </style>
-<h1 id="profiling-zkvms-with-ethrex-replay"><a class="header" href="#profiling-zkvms-with-ethrex-replay">Profiling zkvms with ethrex-replay</a></h1>
-<h2 id="getting-started-2"><a class="header" href="#getting-started-2">Getting started</a></h2>
-<p>Before reading this document please take a look the general documentation for <a href="ethrex_replay/./ethrex_replay.html">ethrex-replay</a></p>
-<h3 id="dependencies-1"><a class="header" href="#dependencies-1">Dependencies</a></h3>
-<h4 id="for-sp1"><a class="header" href="#for-sp1">For SP1</a></h4>
-<p>The easiest way is to use cargo but other options are listed in the <a href="https://github.com/mstange/samply">samply repo</a></p>
-<pre><code>cargo install --locked samply
-</code></pre>
-<h4 id="for-risc0"><a class="header" href="#for-risc0">For risc0</a></h4>
-<p>Install go by following the instructions from <a href="https://go.dev/doc/install">go install page</a></p>
-<h3 id="generate-a-profile"><a class="header" href="#generate-a-profile">Generate a profile</a></h3>
-<h4 id="for-sp1-1"><a class="header" href="#for-sp1-1">For SP1</a></h4>
-<p><strong>Profile a L1 block</strong>:</p>
-<p>Required: <code>RPC_URL</code>.
-Optionally: <code>BLOCK_NUMBER</code>, <code>NETWORK</code>.</p>
-<pre><code class="language-sh">make profile-sp1
-</code></pre>
-<p><strong>Profile a L2 batch</strong>:</p>
-<p>Required: <code>RPC_URL</code>, <code>BATCH_NUMBER</code>, <code>NETWORK</code>.</p>
-<pre><code class="language-sh">make profile-batch-sp1
-</code></pre>
-<p><strong>Open samply profile</strong></p>
-<pre><code class="language-sh">samply load output.json
-</code></pre>
-<p>Then visit http://localhost:8000/ on your browser</p>
-<h4 id="for-risc0-1"><a class="header" href="#for-risc0-1">For risc0</a></h4>
-<p><strong>Profile a L1 block</strong>:</p>
-<p>Required: <code>RPC_URL</code>.
-Optionally: <code>BLOCK_NUMBER</code>, <code>NETWORK</code>.</p>
-<pre><code class="language-sh">make profile-risc0
-</code></pre>
-<p><strong>Profile a L2 batch</strong>:</p>
-<p>Required: <code>RPC_URL</code>, <code>BATCH_NUMBER</code>, <code>NETWORK</code>.</p>
-<pre><code class="language-sh">make profile-batch-risc0
-</code></pre>
-<p><strong>Open pprof profile</strong></p>
-<pre><code class="language-sh">go tool pprof -http=127.0.0.1:8000 profile.pb
-</code></pre>
-<p>Then visit http://localhost:8000/ on your browser</p>
+<h2 id="faq"><a class="header" href="#faq">FAQ</a></h2>
+<h3 id="whats-the-difference-between-eth_getproof-and-debug_executionwitness"><a class="header" href="#whats-the-difference-between-eth_getproof-and-debug_executionwitness">What's the difference between <code>eth_getProof</code> and <code>debug_executionWitness</code>?</a></h3>
+<p><code>eth_getProof</code> gets the proof for a particular account and the chosen storage slots.
+<code>debug_executionWitness</code> gets the whole execution witness necessary to execute a block in a stateless manner.</p>
+<p>The former endpoint is implemented by all execution clients and you can even find it in RPC Providers like Alchemy, the latter is only implemented by some execution clients and you can't find it in RPC Providers.</p>
+<p>When wanting to execute a historical block we tend to use the <code>eth_getProof</code> method with an RPC Provider because it will be the most reliable, other way is using it against a Hash-Based Archive Node but this would be too heavy to host ourselves (20TB at least). This method is slow because it performs many requests but it's very flexible.</p>
+<p>If instead we want to execute a recent block we use it against synced ethrex or reth nodes that expose the <code>debug_executionWitness</code> endpoint, this way retrieval of data will be instant and it will be way faster than the other method, because it won't be doing thousands of RPC requests, just one.</p>
+<p>More information regarding the execution witness in <a href="https://github.com/lambdaclass/ethrex/blob/38e0ffc/docs/l2/architecture/prover.md#execution-witness">the prover docs</a>.</p>
+<h3 id="why-stateless-execution-of-some-blocks-doesnt-work-with-eth_getproof"><a class="header" href="#why-stateless-execution-of-some-blocks-doesnt-work-with-eth_getproof">Why stateless execution of some blocks doesn't work with <code>eth_getProof</code></a></h3>
+<p>With this method of execution we get the proof of all the accounts and storage slots accessed during execution, but the problem arises when we want to delete a node from the Merkle Patricia Trie (MPT) when applying the account updates of the block. This is for a particular case in which a tree restructuring happens and we have a missing node that wasn't accessed but we need to know in order to restructure the trie.</p>
+<p>The problem can be explained with a simple example: a Branch node has 2 child nodes and only one was accessed and removed, this branch node should stop existing because they shouldn't have only <strong>one</strong> child. It will be either replaced by a leaf node or by an extension node, this depends on its child.</p>
+<p>This problem is wonderfully explained in <a href="https://github.com/kkrt-labs/zk-pig/blob/main/docs/modified-mpt.md">zkpig docs</a>, they also have a very good intro to the MPT.
+Here they mention two different solutions that we have to implement in order to fix this. The first one works when the missing node is a Leaf or Extension and the second one works then the missing node is a Branch.</p>
+<p>In our code we only applied the first solution by injecting all possible nodes to the execution witness that we build when using <code>eth_getProof</code>, that's why the witness when using this method will be larger than the witness obtained with <code>debug_executionWitness</code>.</p>
+<p>We didn't apply the second change because it needs a change to the MPT that we don't want in our code. However we were able to solve it for execution without using a zkVM by injecting some "fake nodes" to the trie just before execution that have the expected hash but their RLP content doesn't match to it. This way we can "trick" the Trie into thinking that it has the branch nodes when in fact, it doesn't.</p>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <style>
 .mdbook-alerts {
@@ -7601,7 +7945,6 @@ Commands:
   import              Import blocks to the database
   export              Export blocks in the current chain into a file in rlp encoding
   compute-state-root  Compute the state root from a genesis file
-  l2
   help                Print this message or the help of the given subcommand(s)
 
 Options:
@@ -7644,9 +7987,14 @@ Node options:
 
           [default: INFO]
 
+      --log.color &lt;LOG_COLOR&gt;
+          Possible values: auto, always, never
+
+          [default: auto]
+
       --mempool.maxsize &lt;MEMPOOL_MAX_SIZE&gt;
           Maximum size of the mempool in number of transactions
-        
+
           [default: 10000]
 
 P2P options:
@@ -7654,9 +8002,9 @@ P2P options:
           Comma separated enode URLs for P2P discovery bootstrap.
 
       --syncmode &lt;SYNC_MODE&gt;
-          Can be either "full" or "snap" with "full" as default value.
+          Can be either "full" or "snap" with "snap" as default value.
 
-          [default: full]
+          [default: snap]
 
       --p2p.enabled
 
@@ -7671,6 +8019,16 @@ P2P options:
 
           [default: 30303]
 
+      --p2p.tx-broadcasting-interval &lt;INTERVAL_MS&gt;
+          Transaction Broadcasting Time Interval (ms) for batching transactions before broadcasting them.
+
+          [default: 1000]
+
+      --target.peers &lt;MAX_PEERS&gt;
+          Max amount of connected peers.
+
+          [default: 100]
+
 RPC options:
       --http.addr &lt;ADDRESS&gt;
           Listening address for the http rpc server.
@@ -7683,6 +8041,23 @@ RPC options:
 
           [env: ETHREX_HTTP_PORT=]
           [default: 8545]
+
+      --ws.enabled
+          Enable websocket rpc server. Disabled by default.
+
+          [env: ETHREX_ENABLE_WS=]
+
+      --ws.addr &lt;ADDRESS&gt;
+          Listening address for the websocket rpc server.
+
+          [env: ETHREX_WS_ADDR=]
+          [default: 0.0.0.0]
+
+      --ws.port &lt;PORT&gt;
+          Listening port for the websocket rpc server.
+
+          [env: ETHREX_WS_PORT=]
+          [default: 8546]
 
       --authrpc.addr &lt;ADDRESS&gt;
           Listening address for the authenticated rpc server.
@@ -7699,11 +8074,16 @@ RPC options:
 
           [default: jwt.hex]
 
-Block producer options:
-      --block-producer.extra-data &lt;EXTRA_DATA&gt;
+Block building options:
+      --builder.extra-data &lt;EXTRA_DATA&gt;
           Block extra data message.
 
-          [default: "ethrex 0.1.0"]
+          [default: "ethrex 5.0.0"]
+
+      --builder.gas-limit &lt;GAS_LIMIT&gt;
+          Target block gas limit.
+
+          [default: 30000000]
 </code></pre>
 <!-- END_CLI_HELP -->
 <h2 id="ethrex-l2"><a class="header" href="#ethrex-l2">ethrex l2</a></h2>
@@ -7716,6 +8096,8 @@ Commands:
   blobs-saver   Launch a server that listens for Blobs submissions and saves them offline.
   reconstruct   Reconstructs the L2 state from L1 blobs.
   revert-batch  Reverts unverified batches.
+  pause         Pause L1 contracts
+  unpause       Unpause L1 contracts
   deploy        Deploy in L1 all contracts needed by an L2.
   help          Print this message or the help of the given subcommand(s)
 
@@ -7741,7 +8123,7 @@ Node options:
           If the datadir is the word `memory`, ethrex will use the `InMemory Engine`.
 
           [env: ETHREX_DATADIR=]
-          [default: /home/runner/.local/share/ethrex]
+          [default: "/home/runner/.local/share/ethrex"]
 
       --force
           Delete the database without confirmation.
@@ -7764,19 +8146,30 @@ Node options:
 
           [default: INFO]
 
+      --log.color &lt;LOG_COLOR&gt;
+          Possible values: auto, always, never
+
+          [default: auto]
+
+      --mempool.maxsize &lt;MEMPOOL_MAX_SIZE&gt;
+          Maximum size of the mempool in number of transactions
+
+          [default: 10000]
+
 P2P options:
       --bootnodes &lt;BOOTNODE_LIST&gt;...
           Comma separated enode URLs for P2P discovery bootstrap.
 
       --syncmode &lt;SYNC_MODE&gt;
-          Can be either "full" or "snap" with "full" as default value.
+          Can be either "full" or "snap" with "snap" as default value.
 
-          [default: full]
+          [default: snap]
 
       --p2p.enabled
 
+
       --p2p.port &lt;PORT&gt;
-          TCP port for P2P.
+          TCP port for P2P protocol.
 
           [default: 30303]
 
@@ -7785,12 +8178,22 @@ P2P options:
 
           [default: 30303]
 
+      --p2p.tx-broadcasting-interval &lt;INTERVAL_MS&gt;
+          Transaction Broadcasting Time Interval (ms) for batching transactions before broadcasting them.
+
+          [default: 1000]
+
+      --target.peers &lt;MAX_PEERS&gt;
+          Max amount of connected peers.
+
+          [default: 100]
+
 RPC options:
       --http.addr &lt;ADDRESS&gt;
           Listening address for the http rpc server.
 
           [env: ETHREX_HTTP_ADDR=]
-          [default: localhost]
+          [default: 0.0.0.0]
 
       --http.port &lt;PORT&gt;
           Listening port for the http rpc server.
@@ -7798,10 +8201,27 @@ RPC options:
           [env: ETHREX_HTTP_PORT=]
           [default: 8545]
 
+      --ws.enabled
+          Enable websocket rpc server. Disabled by default.
+
+          [env: ETHREX_ENABLE_WS=]
+
+      --ws.addr &lt;ADDRESS&gt;
+          Listening address for the websocket rpc server.
+
+          [env: ETHREX_WS_ADDR=]
+          [default: 0.0.0.0]
+
+      --ws.port &lt;PORT&gt;
+          Listening port for the websocket rpc server.
+
+          [env: ETHREX_WS_PORT=]
+          [default: 8546]
+
       --authrpc.addr &lt;ADDRESS&gt;
           Listening address for the authenticated rpc server.
 
-          [default: localhost]
+          [default: 127.0.0.1]
 
       --authrpc.port &lt;PORT&gt;
           Listening port for the authenticated rpc server.
@@ -7812,6 +8232,17 @@ RPC options:
           Receives the jwt secret used for authenticated rpc requests.
 
           [default: jwt.hex]
+
+Block building options:
+      --builder.extra-data &lt;EXTRA_DATA&gt;
+          Block extra data message.
+
+          [default: "ethrex 5.0.0"]
+
+      --builder.gas-limit &lt;GAS_LIMIT&gt;
+          Target block gas limit.
+
+          [default: 30000000]
 
 Eth options:
       --eth.rpc-url &lt;RPC_URL&gt;...
@@ -7851,7 +8282,7 @@ L1 Watcher options:
           How often the L1 watcher checks for new blocks in milliseconds.
 
           [env: ETHREX_WATCHER_WATCH_INTERVAL=]
-          [default: 1000]
+          [default: 12000]
 
       --watcher.max-block-step &lt;UINT64&gt;
           [env: ETHREX_WATCHER_MAX_BLOCK_STEP=]
@@ -7872,6 +8303,23 @@ Block producer options:
 
       --block-producer.coinbase-address &lt;ADDRESS&gt;
           [env: ETHREX_BLOCK_PRODUCER_COINBASE_ADDRESS=]
+
+      --block-producer.base-fee-vault-address &lt;ADDRESS&gt;
+          [env: ETHREX_BLOCK_PRODUCER_BASE_FEE_VAULT_ADDRESS=]
+
+      --block-producer.operator-fee-vault-address &lt;ADDRESS&gt;
+          [env: ETHREX_BLOCK_PRODUCER_OPERATOR_FEE_VAULT_ADDRESS=]
+
+      --operator-fee-per-gas &lt;UINT64&gt;
+          Fee that the operator will receive for each unit of gas consumed in a block.
+
+          [env: ETHREX_BLOCK_PRODUCER_OPERATOR_FEE_PER_GAS=]
+
+      --block-producer.block-gas-limit &lt;UINT64&gt;
+          Maximum gas limit for the L2 blocks.
+
+          [env: ETHREX_BLOCK_PRODUCER_BLOCK_GAS_LIMIT=]
+          [default: 30000000]
 
 Proposer options:
       --elasticity-multiplier &lt;UINT64&gt;
@@ -7903,6 +8351,16 @@ L1 Committer options:
           [env: ETHREX_COMMITTER_COMMIT_TIME=]
           [default: 60000]
 
+      --committer.batch-gas-limit &lt;UINT64&gt;
+          Maximum gas limit for the batch
+
+          [env: ETHREX_COMMITTER_BATCH_GAS_LIMIT=]
+
+      --committer.first-wake-up-time &lt;UINT64&gt;
+          Time to wait before the sequencer seals a batch when started. After committing the first batch, `committer.commit-time` will be used.
+
+          [env: ETHREX_COMMITTER_FIRST_WAKE_UP_TIME=]
+
       --committer.arbitrary-base-blob-gas-price &lt;UINT64&gt;
           [env: ETHREX_COMMITTER_ARBITRARY_BASE_BLOB_GAS_PRICE=]
           [default: 1000000000]
@@ -7917,6 +8375,12 @@ Proof coordinator options:
           Private key of of a funded account that the TDX tool that will use to send the tdx attestation to L1.
 
           [env: ETHREX_PROOF_COORDINATOR_TDX_PRIVATE_KEY=]
+
+      --proof-coordinator.qpl-tool-path &lt;QPL_TOOL_PATH&gt;
+          Path to the QPL tool that will be used to generate TDX quotes.
+
+          [env: ETHREX_PROOF_COORDINATOR_QPL_TOOL_PATH=]
+          [default: ./tee/contracts/automata-dcap-qpl/automata-dcap-qpl-tool/target/release/automata-dcap-qpl-tool]
 
       --proof-coordinator.remote-signer-url &lt;URL&gt;
           URL of a Web3Signer-compatible server to remote sign instead of a local private key.
@@ -7943,9 +8407,6 @@ Proof coordinator options:
 
           [env: ETHREX_PROOF_COORDINATOR_SEND_INTERVAL=]
           [default: 5000]
-
-      --proof-coordinator.dev-mode
-          [env: ETHREX_PROOF_COORDINATOR_DEV_MODE=]
 
 Based options:
       --state-updater.sequencer-registry &lt;ADDRESS&gt;
@@ -7991,10 +8452,14 @@ Aligned options:
           [env: ETHREX_ALIGNED_FEE_ESTIMATE=]
           [default: instant]
 
-      --aligned-sp1-elf-path &lt;ETHREX_ALIGNED_SP1_ELF_PATH&gt;
-          Path to the SP1 elf. This is used for proof verification.
+Admin server options:
+      --admin-server.addr &lt;IP_ADDRESS&gt;
+          [env: ETHREX_ADMIN_SERVER_LISTEN_ADDRESS=]
+          [default: 127.0.0.1]
 
-          [env: ETHREX_ALIGNED_SP1_ELF_PATH=]
+      --admin-server.port &lt;UINT16&gt;
+          [env: ETHREX_ADMIN_SERVER_LISTEN_PORT=]
+          [default: 5555]
 
 L2 options:
       --validium
@@ -8014,11 +8479,12 @@ L2 options:
 Monitor options:
       --no-monitor
           [env: ETHREX_NO_MONITOR=]
+          
 </code></pre>
 <h2 id="ethrex-l2-prover-1"><a class="header" href="#ethrex-l2-prover-1">ethrex l2 prover</a></h2>
 <pre><code>Initialize an ethrex prover
 
-Usage: ethrex l2 prover [OPTIONS] --proof-coordinators &lt;URL&gt;
+Usage: ethrex l2 prover [OPTIONS] --proof-coordinators &lt;URL&gt;...
 
 Options:
   -h, --help
@@ -8028,10 +8494,10 @@ Prover client options:
       --backend &lt;BACKEND&gt;
           [env: PROVER_CLIENT_BACKEND=]
           [default: exec]
-          [possible values: exec]
+          [possible values: exec, sp1, risc0]
 
-      --proof-coordinators &lt;URL&gt;
-          URL of the sequencer's proof coordinator
+      --proof-coordinators &lt;URL&gt;...
+          URLs of all the sequencers' proof coordinator
 
           [env: PROVER_CLIENT_PROOF_COORDINATOR_URL=]
 
@@ -8050,7 +8516,196 @@ Prover client options:
           Activate aligned proving system
 
           [env: PROVER_CLIENT_ALIGNED=]
+
+      --sp1-server &lt;URL&gt;
+          Url to the moongate server to use when using sp1 backend
+
+          [env: ETHREX_SP1_SERVER=]
 </code></pre>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="how-to-release-an-ethrex-version"><a class="header" href="#how-to-release-an-ethrex-version">How to Release an ethrex version</a></h1>
+<p>Releases are prepared from dedicated release branches and tagged using versioning.</p>
+<h2 id="1st---create-release-branch"><a class="header" href="#1st---create-release-branch">1st - Create release branch</a></h2>
+<p>Branch name must follow the format <code>release/vX.Y.Z</code>.</p>
+<p>Examples:</p>
+<ul>
+<li><code>release/v1.2.0</code></li>
+<li><code>release/v3.0.0</code></li>
+<li><code>release/v3.2.0</code></li>
+</ul>
+<h2 id="2nd---bump-version"><a class="header" href="#2nd---bump-version">2nd - Bump version</a></h2>
+<p>In the release branch, update the <code>[workspace.package]</code> version to <code>X.Y.Z</code> in the root <code>Cargo.toml</code>, and push the change to the branch.</p>
+<p>An example can be found here:</p>
+<p>https://github.com/lambdaclass/ethrex/pull/4881/files#diff-2e9d962a08321605940b5a657135052fbcef87b5e360662bb527c96d9a615542</p>
+<p>There are currently three <code>Cargo.lock</code> files that will be affected. Make sure you check them:</p>
+<ul>
+<li>root <code>Cargo.lock</code></li>
+<li><code>sp1/Cargo.lock</code></li>
+<li><code>risc0/Cargo.lock</code></li>
+</ul>
+<h2 id="3rd---create--push-tag"><a class="header" href="#3rd---create--push-tag">3rd - Create &amp; Push Tag</a></h2>
+<p>Create a tag with a format <code>vX.Y.Z-rc.W</code> where <code>X.Y.Z</code> is the semantic version and <code>W</code> is a release candidate version. Other names for subversions are also accepted. Example of valid tags:</p>
+<ul>
+<li><code>v0.1.3-rc.1</code></li>
+<li><code>v0.0.2-alpha</code></li>
+</ul>
+<pre><code class="language-bash">git tag &lt;release_version&gt;
+git push origin &lt;release_version&gt;
+</code></pre>
+<p>After pushing the tag, a CI job will compile the binaries for different architectures and create a pre-release with the version specified in the tag name. Along with the binaries, a tar file is uploaded with the contracts and the verification keys. The following binaries are built:</p>
+<div class="table-wrapper"><table><thead><tr><th>name</th><th>L2 stack</th><th>Provers</th><th>CUDA support</th></tr></thead><tbody>
+<tr><td>ethrex-linux-x86-64</td><td>❌</td><td>-</td><td>-</td></tr>
+<tr><td>ethrex-linux-aarch64</td><td>❌</td><td>-</td><td>-</td></tr>
+<tr><td>ethrex-linux-macos-aarch64</td><td>❌</td><td>-</td><td>-</td></tr>
+<tr><td>ethrex-l2-linux-x86-64</td><td>✅</td><td>SP1 - RISC0 - Exec</td><td>❌</td></tr>
+<tr><td>ethrex-l2-linux-x86-64-gpu</td><td>✅</td><td>SP1 - RISC0 - Exec</td><td>✅</td></tr>
+<tr><td>ethrex-l2-linux-aarch64</td><td>✅</td><td>SP1 - Exec</td><td>❌</td></tr>
+<tr><td>ethrex-l2-linux-aarch64-gpu</td><td>✅</td><td>SP1 - Exec</td><td>✅</td></tr>
+<tr><td>ethrex-l2-macos-aarch64</td><td>✅</td><td>Exec</td><td>❌</td></tr>
+</tbody></table>
+</div>
+<p>Also, two docker images are built and pushed to the Github Container registry:</p>
+<ul>
+<li><code>ghcr.io/lambdaclass/ethrex:X.Y.Z-rc.W</code></li>
+<li><code>ghcr.io/lambdaclass/ethrex:X.Y.Z-rc.W-l2</code></li>
+</ul>
+<p>A changelog will be generated based on commit names (using conventional commits) from the last stable tag.</p>
+<h2 id="4th---test--publish-release"><a class="header" href="#4th---test--publish-release">4th - Test &amp; Publish Release</a></h2>
+<p>When you are sure all the binaries and docker images work as expected, you can proceed to publish the release. To do so, edit the last pre-release with the following changes:</p>
+<ul>
+<li>Change the name to <code>ethrex: vX.Y.Z</code></li>
+<li>Change the tag to a new one <code>vX.Y.Z</code>. <strong>IMPORTANT</strong>: Make sure to select the <code>release/vX.Y.Z</code> branch when changing the tag.</li>
+<li>Set the release as the latest release (you will need to uncheck the pre-release first).</li>
+</ul>
+<p>Once done, the CI will publish new tags for the already compiled docker images:</p>
+<ul>
+<li><code>ghcr.io/lambdaclass/ethrex:X.Y.Z</code>, <code>ghcr.io/lambdaclass/ethrex:latest</code></li>
+<li><code>ghcr.io/lambdaclass/ethrex:X.Y.Z-l2</code>, <code>ghcr.io/lambdaclass/ethrex:l2</code></li>
+</ul>
+<h2 id="5th---update-homebrew"><a class="header" href="#5th---update-homebrew">5th - Update Homebrew</a></h2>
+<p>Disclaimer: We should automate this</p>
+<ol>
+<li>Commit a change in https://github.com/lambdaclass/homebrew-tap/ bumping the ethrex version (like <a href="https://github.com/lambdaclass/homebrew-tap/commit/d78a2772ad9c5412e7f84c6210bd85c970fcd0e6">this one</a>).
+<ul>
+<li>
+<p>The first SHA is the hash of the <code>.tar.gz</code> from the release. You can get it by downloading the <code>Source code (tar.gz)</code> from the ethrex release and running</p>
+<pre><code class="language-bash">shasum -a 256 ethrex-v3.0.0.tar.gz
+</code></pre>
+</li>
+<li>
+<p>For the second one:</p>
+<ul>
+<li>
+<p>First download the <code>ethrex-l2-macos-aarch64</code> binary from the ethrex release</p>
+</li>
+<li>
+<p>Give exec permissions to binary</p>
+<pre><code class="language-bash">chmod +x ethrex-l2-macos-aarch64
+</code></pre>
+</li>
+<li>
+<p>Create a dir <code>ethrex/3.0.0/bin</code> (replace the version as needed)</p>
+</li>
+<li>
+<p>Move (and rename) the binary to <code>ethrex/3.0.0/bin/ethrex</code> (the last <code>ethrex</code> is the binary)</p>
+</li>
+<li>
+<p>Remove quarantine flags (in this case, <code>ethrex</code> is the root dir mentioned before):</p>
+<pre><code class="language-bash">xattr -dr com.apple.metadata:kMDItemWhereFroms ethrex
+xattr -dr com.apple.quarantine ethrex
+</code></pre>
+</li>
+<li>
+<p>Tar the dir with the following name (again, <code>ethrex</code> is the root dir):</p>
+<pre><code class="language-bash">tar -czf ethrex-3.0.0.arm64_sonoma.bottle.tar.gz ethrex
+</code></pre>
+</li>
+<li>
+<p>Get the checksum:</p>
+<pre><code class="language-bash">shasum -a 256 ethrex-3.0.0.arm64_sonoma.bottle.tar.gz
+</code></pre>
+</li>
+<li>
+<p>Use this as the second hash (the one in the <code>bottle</code> section)</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Push the commit</li>
+<li>Create a new release with tag <code>v3.0.0</code>. <strong>IMPORTANT</strong>: attach the <code>ethrex-3.0.0.arm64_sonoma.bottle.tar.gz</code> to the release</li>
+</ol>
+<h2 id="6th---merge-the-release-branch-via-pr"><a class="header" href="#6th---merge-the-release-branch-via-pr">6th - Merge the release branch via PR</a></h2>
+<p>Once the release is verified, <strong>merge the branch via PR</strong>.</p>
+<h2 id="dealing-with-hotfixes"><a class="header" href="#dealing-with-hotfixes">Dealing with hotfixes</a></h2>
+<p>If hotfixes are needed before the final release, commit them to <code>release/vX.Y.Z</code>, push, and create a new pre-release tag. The final tag <code>vX.Y.Z</code> should always point to the exact commit you will merge via PR.</p>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <style>
 .mdbook-alerts {
@@ -8263,6 +8918,87 @@ This means every component — from L1 syncing to L2 bridging and prover integra
 <li>If you have questions, open an issue or ask in the community chat.</li>
 </ul>
 <p>Thank you for helping improve the documentation!</p>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="recommended-lectures"><a class="header" href="#recommended-lectures">Recommended lectures</a></h1>
+<blockquote>
+<p><strong>Disclaimer</strong>: This section is under development. We’ll continue to expand it with more up-to-date materials over time.</p>
+</blockquote>
+<p>For those interested in deepening their understanding of Ethereum internals, execution clients, and related zero-knowledge and distributed systems topics, we recommend the following materials:</p>
+<ul>
+<li>
+<p><a href="https://x.com/megaeth_labs/status/1978854478943256986?s=12">ENDGAME: How MegaETH bridges throughput and decentralization</a></p>
+</li>
+<li>
+<p><a href="https://x.com/megaeth_labs/status/1962902246573879530?s=12">ENDGAME: How SALT breaks the bottleneck that's been strangling blockchains</a></p>
+</li>
+</ul>
 
                     </main>
 
